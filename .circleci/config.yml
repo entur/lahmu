@@ -1,9 +1,15 @@
 version: 2.1
 
+executors:
+  java-11:
+    docker:
+      - image: circleci/openjdk:11-jdk
+
 orbs:
   gradle: circleci/gradle@2.1.0
 
 workflows:
   checkout-build-test:
     jobs:
-      - gradle/test
+      - gradle/test:
+          executor: java-11
