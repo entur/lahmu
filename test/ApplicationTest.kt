@@ -6,6 +6,6 @@ class ApplicationTest {
     @Test
     fun test() {
         var t = 1
-        assertEquals(t, 2)
+        assertEquals(t, 1)
     }
 }
