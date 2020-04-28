@@ -17,6 +17,10 @@ jobs:
       - gradle/with_cache:
           steps:
             - run: ./gradlew clean build -x test
+      - persist_to_workspace:
+          root: .
+          paths:
+            - build/libs/
 
 workflows:
   Checkout-Build-Test:
