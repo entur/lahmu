@@ -16,19 +16,22 @@ jobs:
       - checkout
       - gradle/with_cache:
           steps:
-            - run: ./gradlew clean build -x test
+            - run: ./gradlew --no-daemon clean build
       - persist_to_workspace:
           root: .
           paths:
             - build/libs/
 
 workflows:
-  Checkout-Build-Test:
+  Build-Publish:
     jobs:
       - Build
       - docker/publish:
           registry: $DOCKER_REGISTRY
           image: $CIRCLE_PROJECT_REPONAME
           context: global
+          after_checkout:
+            - attach_workspace:
+                at: .
           requires:
             - Build
