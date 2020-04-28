@@ -18,7 +18,7 @@ commands:
 
 jobs:
   Build:
-    executor: Java-11
+    executor: java-11
     steps:
       - checkout
       - gradle/with_cache:
@@ -26,7 +26,7 @@ jobs:
             - run: ./gradlew clean build -x test
 
   Test:
-    executor: Java-11
+    executor: java-11
     steps:
       - gradle/test
 
