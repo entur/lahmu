@@ -24,6 +24,7 @@ jobs:
       - gradle/with_cache:
           steps:
             - run: clean build -x test
+      - docker-login
 
 workflows:
   checkout-build-test:
@@ -31,4 +32,3 @@ workflows:
       - build
       - gradle/test:
           executor: java-11
-      - docker-login
