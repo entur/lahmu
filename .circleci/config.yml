@@ -8,8 +8,27 @@ executors:
 orbs:
   gradle: circleci/gradle@2.1.0
 
+commands:
+  docker-login:
+    description: "Authenticates docker client with GCR"
+    steps:
+      - run:
+          name: Docker auth
+          command: docker login -u "${DOCKER_LOGIN}" -p "${DOCKER_PASSWORD}" ${DOCKER_REGISTRY}
+
+jobs:
+  build:
+    executor: java-11
+    steps:
+      - checkout
+      - gradle/with_cache:
+          steps:
+            - run: clean build -x test
+
 workflows:
   checkout-build-test:
     jobs:
+      - build
       - gradle/test:
           executor: java-11
+      - docker-login
