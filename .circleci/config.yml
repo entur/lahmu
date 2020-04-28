@@ -23,7 +23,7 @@ jobs:
       - checkout
       - gradle/with_cache:
           steps:
-            - run: clean build -x test
+            - run: ./gradlew clean build -x test
       - docker-login
 
 workflows:
