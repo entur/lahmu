@@ -25,16 +25,11 @@ jobs:
           steps:
             - run: ./gradlew clean build -x test
 
-  Test:
-    executor: java-11
-    steps:
-      - gradle/test
-
-
 workflows:
   Checkout-Build-Test:
     jobs:
       - Build
-      - Test:
+      - gradle/test:
+          executor: java-11
           requires:
             - Build
