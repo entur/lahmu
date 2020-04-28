@@ -1,7 +1,7 @@
 version: 2.1
 
 executors:
-  java-11:
+  Java-11:
     docker:
       - image: circleci/openjdk:11-jdk
 
@@ -9,7 +9,7 @@ orbs:
   gradle: circleci/gradle@2.1.0
 
 commands:
-  docker-login:
+  Docker-Login:
     description: "Authenticates docker client with GCR"
     steps:
       - run:
@@ -17,18 +17,23 @@ commands:
           command: docker login -u "${DOCKER_LOGIN}" -p "${DOCKER_PASSWORD}" ${DOCKER_REGISTRY}
 
 jobs:
-  build:
-    executor: java-11
+  Build:
+    executor: Java-11
     steps:
       - checkout
       - gradle/with_cache:
           steps:
             - run: ./gradlew clean build -x test
-      - docker-login
+
+  Test:
+    steps:
+      - gradle/test:
+          executor: Java-11
 
 workflows:
-  checkout-build-test:
+  Checkout-Build-Test:
     jobs:
-      - build
-      - gradle/test:
-          executor: java-11
+      - Build
+      - Test:
+          requires:
+            -Build
