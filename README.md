@@ -28,6 +28,18 @@ hot reload. However, a description to create it on your own follows:
    
    * Run `Bikeservice`-configuration and the auto reload functionality is present 
 
+### Ktlint
+This project is using a code formatter called Ktlint.
+
+* To check for format errors: `./gradlew ktlintCheck`
+* To fix all format errors: `./gradlew ktlintFormat`
+
+#### Pre-commit script
+A pre-commit script that automatically formats the code when committing is placed in the folder `.githooks`.
+To enable this, do **one** of the following:
+* `git config core.hooksPath .githooks` Changes the default location for git hooks. (Git version > 2.9)
+* `cp .githooks/pre-commit .git/hooks` Copy the script to the default location of hooks.
+
 ### Docker
 - `docker build --tag bikeservice:0.0.1 .`
 - `docker run --publish 8000:8080 --name bs bikeservice:0.0.1`

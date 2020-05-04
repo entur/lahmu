@@ -32,3 +32,6 @@ build/
 # Gradle
 .gradle/
 !gradle-wrapper.jar
+
+# Git hooks
+!.githooks/
