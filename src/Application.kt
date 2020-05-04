@@ -24,6 +24,9 @@ fun Application.module() {
         get("/") {
             call.respondText("Hello and welcome to Entur Bikeservice!", ContentType.Application.Json)
         }
+        get("/health") {
+            call.respondText("OK")
+        }
         get("{operator}/gbfs.json") {
             val operator = BikeOperator.valueOf(call.parameters["operator"]?.toUpperCase() ?: throw NullPointerException())
             call.respondText(Gson().toJson(parseResponse<BikeResponse>(getOperatorGbfs(operator).gbfs)), ContentType.Application.Json)
