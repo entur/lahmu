@@ -28,6 +28,18 @@ hot reload. However, a description to create it on your own follows:
    
    * Run `Bikeservice`-configuration and the auto reload functionality is present 
 
+### Ktlint
+This project is using a code formatter called Ktlint.
+
+* To check for format errors: `./gradlew ktlintCheck`
+* To fix all format errors: `./gradlew ktlintFormat`
+
+#### Pre-commit script
+To run `ktlintFormat` as a pre-hook (recommended) do the following:
+* `brew install ktlint`
+* `./gradlew ktlintApplyToIdea addKtlintFormatGitPreCommitHook`
+
+
 ### Docker
 - `docker build --tag bikeservice:0.0.1 .`
 - `docker run --publish 8000:8080 --name bs bikeservice:0.0.1`
