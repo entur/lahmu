@@ -1,16 +1,22 @@
 package org.entur
 
 import BikeResponse
+import BikeResponseData
+import BikeResponseFeed
+import BikeResponseLanguage
 import StationInformationResponse
 import StationStatusResponse
 import SystemInformationResponse
 import com.google.gson.Gson
+import getOperatorName
 import io.ktor.application.Application
 import io.ktor.application.call
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.http.ContentType
+import io.ktor.request.host
+import io.ktor.request.port
 import io.ktor.response.respondText
 import io.ktor.routing.get
 import io.ktor.routing.routing
@@ -42,10 +48,12 @@ fun Application.module() {
             val result = if (gbfsCache.isValidCache(operator)) {
                 gbfsCache.getResponseFromCache(operator)
             } else {
-                val response = parseResponse<BikeResponse>(
+                val host = call.request.host()
+                val port = call.request.port()
+                val response = formatGbfsEndpoints(parseResponse<BikeResponse>(
                     getUrbanSharingOperator(
                         operator
-                    ).gbfs)
+                    ).gbfs), host, port)
                 gbfsCache.setResponseInCache(operator, response)
                 response
             }
@@ -88,7 +96,9 @@ fun Application.module() {
             call.respondText(Gson().toJson(result), ContentType.Application.Json)
         }
         get("/all") {
-            call.respondText(Gson().toJson(getUrbanSharingOperators()), ContentType.Application.Json)
+            val host = call.request.host()
+            val port = call.request.port()
+            call.respondText(Gson().toJson(getUrbanSharingOperators(host, port)), ContentType.Application.Json)
         }
     }
 }
@@ -98,4 +108,30 @@ suspend inline fun <reified T> parseResponse(url: String): T {
         val response = get<String>(url) { header("Client-Identifier", "entur-bikeservice") }
         return Gson().fromJson(response, T::class.java)
     }
+}
+
+inline fun formatGbfsEndpoints(bikeResponse: BikeResponse, host: String, port: Int): BikeResponse =
+    BikeResponse(
+        last_updated = bikeResponse.last_updated,
+        ttl = bikeResponse.ttl,
+        data = BikeResponseData(
+            nb = BikeResponseLanguage(
+                feeds = bikeResponse.data.nb.feeds.map {
+                    BikeResponseFeed(
+                        name = it.name,
+                        url = formatUrl(it.url, host, port)
+                    )
+                }
+            )
+        )
+    )
+
+inline fun formatUrl(url: String, host: String, port: Int): String {
+    var splittedUrl = url.split('/').toMutableList()
+    val operator = getOperatorName(splittedUrl[3])
+    splittedUrl[2] = if (host.equals("localhost")) "$host:$port" else host
+    splittedUrl[3] = operator
+    splittedUrl = splittedUrl.slice(2 until splittedUrl.size).toMutableList()
+
+    return splittedUrl.joinToString(separator = "/")
 }

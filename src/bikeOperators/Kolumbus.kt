@@ -16,7 +16,6 @@ import java.math.BigDecimal
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 
-data class KolumbusResponse(val data: List<KolumbusStation>)
 data class KolumbusStation(
     val id: String,
     val external_id: String,
@@ -31,6 +30,7 @@ data class KolumbusStation(
     val latitude: BigDecimal,
     val longitude: BigDecimal
 )
+data class KolumbusResponse(val data: List<KolumbusStation>)
 fun KolumbusResponse.toSystemInformation() = SystemInformationResponse(
     last_updated = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC),
     ttl = 15,

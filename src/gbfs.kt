@@ -32,3 +32,12 @@ data class StationStatusResponse(override val last_updated: Long, override val t
     GBFSResponse<StationStatuses>
 data class StationStatuses(val stations: List<StationStatus>)
 data class StationStatus(val station_id: String, val is_installed: Int, val is_renting: Int, val is_returning: Int, val last_reported: BigDecimal, val num_bikes_available: Int, val num_docks_available: Int)
+
+fun getOperatorName(operator: String): String {
+    return when (operator) {
+        "oslobysykkel.no" -> "oslobysykkel"
+        "trondheimbysykkel.no" -> "trondheimbysykkel"
+        "bergenbysykkel.no" -> "bergenbysykkel"
+        else -> throw Exception("No such operator name")
+    }
+}

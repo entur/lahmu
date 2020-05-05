@@ -1,14 +1,15 @@
 package org.entur.bikeOperators
 import GbfsStandard
+import org.entur.formatUrl
 
 enum class UrbanSharingOperator {
     OSLOBYSYKKEL, BERGENBYSYKKEL, TRONDHEIMBYSYKKEL
 }
 
-fun getUrbanSharingOperators(): Map<String, List<Map<String, String>>> =
-    mapOf("operators" to UrbanSharingOperator.values().map { mapOf("$it".toLowerCase() to getUrbanSharingOperator(
+fun getUrbanSharingOperators(host: String, port: Int): Map<String, List<Map<String, String>>> =
+    mapOf("operators" to UrbanSharingOperator.values().map { mapOf("$it".toLowerCase() to formatUrl(getUrbanSharingOperator(
         it
-    ).gbfs) })
+    ).gbfs, host, port)) })
 
 fun getUrbanSharingOperator(operator: UrbanSharingOperator): GbfsStandard =
     when (operator) {
