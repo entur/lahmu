@@ -1,11 +1,14 @@
+import bikeOperators.Operators
 import java.math.BigDecimal
+import java.time.LocalDateTime
+import java.time.ZoneOffset
 
-interface GbfsStandard {
-    val gbfs: String
-    val system_information: String
-    val station_information: String
+data class GbfsStandard(
+    val gbfs: String,
+    val system_information: String,
+    val station_information: String,
     val station_status: String
-}
+)
 
 interface GBFSResponse<T> {
     val last_updated: Long
@@ -13,11 +16,11 @@ interface GBFSResponse<T> {
     val data: T
 }
 
-data class BikeResponse(override val last_updated: Long, override val ttl: Long, override val data: BikeResponseData) :
-    GBFSResponse<BikeResponseData>
-data class BikeResponseData(val nb: BikeResponseLanguage)
-data class BikeResponseLanguage(val feeds: List<BikeResponseFeed>)
-data class BikeResponseFeed(val name: String, val url: String)
+data class GbfsJsonResponse(override val last_updated: Long, override val ttl: Long, override val data: GbfsJsonData) :
+    GBFSResponse<GbfsJsonData>
+data class GbfsJsonData(val nb: GbfsJsonLanguage)
+data class GbfsJsonLanguage(val feeds: List<GbfsJsonFeed>)
+data class GbfsJsonFeed(val name: String, val url: String)
 
 data class SystemInformationResponse(override val last_updated: Long, override val ttl: Long, override val data: SystemInformation) :
     GBFSResponse<SystemInformation>
@@ -33,11 +36,28 @@ data class StationStatusResponse(override val last_updated: Long, override val t
 data class StationStatuses(val stations: List<StationStatus>)
 data class StationStatus(val station_id: String, val is_installed: Int, val is_renting: Int, val is_returning: Int, val last_reported: BigDecimal, val num_bikes_available: Int, val num_docks_available: Int)
 
-fun getOperatorName(operator: String): String {
-    return when (operator) {
-        "oslobysykkel.no" -> "oslobysykkel"
-        "trondheimbysykkel.no" -> "trondheimbysykkel"
-        "bergenbysykkel.no" -> "bergenbysykkel"
-        else -> throw Exception("No such operator name")
-    }
+fun getGbfsJson(gbfsStandard: GbfsStandard): GbfsJsonResponse =
+    GbfsJsonResponse(
+        last_updated = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC),
+        ttl = 15,
+        data = GbfsJsonData(
+            nb = GbfsJsonLanguage(
+                feeds = listOf(
+                    GbfsJsonFeed(name = "gbfs", url = gbfsStandard.gbfs),
+                    GbfsJsonFeed(name = "system_information", url = gbfsStandard.system_information),
+                    GbfsJsonFeed(name = "station_information", url = gbfsStandard.station_information),
+                    GbfsJsonFeed(name = "station_status", url = gbfsStandard.station_status)
+                )
+            )
+        )
+    )
+
+fun getGbfsEndpoint(operators: Operators, host: String, port: Int): GbfsStandard {
+    val urlHost = if (host == "localhost") "$host:$port" else host
+    return GbfsStandard(
+        gbfs = "$urlHost/$operators/gbfs.json".toLowerCase(),
+        system_information = "$urlHost/$operators/system_information.json".toLowerCase(),
+        station_information = "$urlHost/$operators/station_information.json".toLowerCase(),
+        station_status = "$urlHost/$operators/station_status.json".toLowerCase()
+    )
 }

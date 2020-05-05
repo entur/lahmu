@@ -1,8 +1,8 @@
 package org.entur.bikeOperators
-import BikeResponse
-import BikeResponseData
-import BikeResponseFeed
-import BikeResponseLanguage
+import GbfsJsonData
+import GbfsJsonFeed
+import GbfsJsonLanguage
+import GbfsJsonResponse
 import GbfsStandard
 import Station
 import StationInformationResponse
@@ -77,21 +77,21 @@ fun KolumbusResponse.toStationInformation() = StationInformationResponse(
     )
 )
 
-fun kolumbusGBBFSResponse() = BikeResponse(
+fun kolumbusGBBFSResponse() = GbfsJsonResponse(
     last_updated = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC),
     ttl = 15,
-    data = BikeResponseData(nb =
-        BikeResponseLanguage(feeds = listOf(
-            BikeResponseFeed(name = "system_information", url = "kolumbusbysykkel/system_information.json"),
-            BikeResponseFeed(name = "station_information", url = "kolumbusbysykkel/station_information.json"),
-            BikeResponseFeed(name = "station_status", url = "kolumbusbysykkel/station_status.json")
+    data = GbfsJsonData(nb =
+        GbfsJsonLanguage(feeds = listOf(
+            GbfsJsonFeed(name = "system_information", url = "kolumbusbysykkel/system_information.json"),
+            GbfsJsonFeed(name = "station_information", url = "kolumbusbysykkel/station_information.json"),
+            GbfsJsonFeed(name = "station_status", url = "kolumbusbysykkel/station_status.json")
         ))
     )
 )
 
-object KolumbusBysykkelURL : GbfsStandard {
-    override val gbfs: String = ""
-    override val system_information: String = "https://sanntidapi-web-prod.azurewebsites.net/api/parkings?type=CityBike"
-    override val station_information: String = "https://sanntidapi-web-prod.azurewebsites.net/api/parkings?type=CityBike"
-    override val station_status: String = "https://sanntidapi-web-prod.azurewebsites.net/api/parkings?type=CityBike"
-}
+val kolumbusBysykkelURL = GbfsStandard(
+    gbfs = "",
+    system_information = "https://sanntidapi-web-prod.azurewebsites.net/api/parkings?type=CityBike",
+    station_information = "https://sanntidapi-web-prod.azurewebsites.net/api/parkings?type=CityBike",
+    station_status = "https://sanntidapi-web-prod.azurewebsites.net/api/parkings?type=CityBike"
+)

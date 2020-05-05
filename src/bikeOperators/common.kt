@@ -1,11 +1,11 @@
 package bikeOperators
 
 import GbfsStandard
-import org.entur.bikeOperators.BergenBysykkelURL
-import org.entur.bikeOperators.KolumbusBysykkelURL
-import org.entur.bikeOperators.OsloBysykkelURL
-import org.entur.bikeOperators.TrondheimBysykkelURL
-import org.entur.formatUrl
+import getGbfsEndpoint
+import org.entur.bikeOperators.bergenBysykkelURL
+import org.entur.bikeOperators.kolumbusBysykkelURL
+import org.entur.bikeOperators.osloBysykkelURL
+import org.entur.bikeOperators.trondheimBysykkelURL
 
 enum class Operators {
     OSLOBYSYKKEL, BERGENBYSYKKEL, TRONDHEIMBYSYKKEL, KOLUMBUSBYSYKKEL;
@@ -15,15 +15,15 @@ enum class Operators {
     }
 }
 
-fun getOperators(port: String, host: Int): Map<String, List<Map<String, String>>> =
-    mapOf("operators" to Operators.values().map { mapOf("$it".toLowerCase() to formatUrl(getOperator(
-        it
-    ).gbfs, port, host)) })
+fun getOperators(port: String, host: Int): Map<String, List<Map<String, GbfsStandard>>> =
+    mapOf("operators" to Operators.values().map {
+        mapOf("$it".toLowerCase() to getGbfsEndpoint(it, port, host))
+    })
 
 fun getOperator(operator: Operators): GbfsStandard =
     when (operator) {
-        Operators.OSLOBYSYKKEL -> OsloBysykkelURL
-        Operators.BERGENBYSYKKEL -> BergenBysykkelURL
-        Operators.TRONDHEIMBYSYKKEL -> TrondheimBysykkelURL
-        Operators.KOLUMBUSBYSYKKEL -> KolumbusBysykkelURL
+        Operators.OSLOBYSYKKEL -> osloBysykkelURL
+        Operators.BERGENBYSYKKEL -> bergenBysykkelURL
+        Operators.TRONDHEIMBYSYKKEL -> trondheimBysykkelURL
+        Operators.KOLUMBUSBYSYKKEL -> kolumbusBysykkelURL
     }
