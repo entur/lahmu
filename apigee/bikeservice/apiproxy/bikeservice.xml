@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <APIProxy revision="1" name="bikeservice">
-    <Basepaths>/bikeservice</Basepaths>
     <ConfigurationVersion majorVersion="4" minorVersion="0"/>
-    <CreatedBy>teamplattform@entur.org</CreatedBy>
-    <Description></Description>
     <DisplayName>bikeservice</DisplayName>
+    <Description>bikeservice</Description>
     <Policies>
         <Policy>add-cors</Policy>
+        <Policy>flowCallout.getEnvironmentConfiguration</Policy>
+        <Policy>flowCalloutreplaceTargetUrl</Policy>
+        <Policy>spikeArrest</Policy>
     </Policies>
     <ProxyEndpoints>
         <ProxyEndpoint>default</ProxyEndpoint>
