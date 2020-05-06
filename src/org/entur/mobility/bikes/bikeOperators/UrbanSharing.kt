@@ -1,6 +1,6 @@
-package org.entur.bikeOperators
+package org.entur.mobility.bikes.bikeOperators
 
-import org.entur.GbfsStandard
+import org.entur.mobility.bikes.GbfsStandard
 
 val osloBysykkelURL = GbfsStandard(
     gbfs = "https://gbfs.urbansharing.com/oslobysykkel.no/gbfs.json",

@@ -1,9 +1,9 @@
-package org.entur
+package org.entur.mobility.bikes
 
 import java.math.BigDecimal
 import java.time.LocalDateTime
 import java.time.ZoneOffset
-import org.entur.bikeOperators.Operators
+import org.entur.mobility.bikes.bikeOperators.Operators
 
 data class GbfsStandard(
     val gbfs: String,

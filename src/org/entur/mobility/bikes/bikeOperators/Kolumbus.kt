@@ -1,15 +1,15 @@
-package org.entur.bikeOperators
+package org.entur.mobility.bikes.bikeOperators
 
 import java.math.BigDecimal
 import java.time.LocalDateTime
 import java.time.ZoneOffset
-import org.entur.GBFSResponse
-import org.entur.GbfsStandard
-import org.entur.Station
-import org.entur.StationStatus
-import org.entur.StationStatuses
-import org.entur.Stations
-import org.entur.SystemInformation
+import org.entur.mobility.bikes.GBFSResponse
+import org.entur.mobility.bikes.GbfsStandard
+import org.entur.mobility.bikes.Station
+import org.entur.mobility.bikes.StationStatus
+import org.entur.mobility.bikes.StationStatuses
+import org.entur.mobility.bikes.Stations
+import org.entur.mobility.bikes.SystemInformation
 
 data class KolumbusResponse(val data: List<KolumbusStation>)
 data class KolumbusStation(
