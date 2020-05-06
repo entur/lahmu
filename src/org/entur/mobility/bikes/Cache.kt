@@ -11,9 +11,12 @@ interface Cache<T> {
 class InMemoryCache<T>(
     override val cacheMap: HashMap<Operator, T>,
     override var lastUpdated: LocalDateTime
+
 ) : Cache<T> {
-    fun getResponseFromCache(bikeOperator: Operator) =
-        cacheMap[bikeOperator]
+    fun getResponseFromCache(bikeOperator: Operator): T? {
+        println("Got cached response!")
+        return cacheMap[bikeOperator]
+    }
 
     fun setResponseInCacheAndGet(bikeOperator: Operator, response: T): T {
         cacheMap[bikeOperator] = response
@@ -21,5 +24,5 @@ class InMemoryCache<T>(
         return response
     }
     fun isValidCache(bikeOperator: Operator): Boolean =
-        cacheMap[bikeOperator] != null && lastUpdated > LocalDateTime.now().minusSeconds(5)
+        cacheMap[bikeOperator] != null && lastUpdated > LocalDateTime.now().minusSeconds(15)
 }
