@@ -1,16 +1,7 @@
-package org.entur
+package org.entur.mobility.bikes
 
-import GBFSResponse
-import StationStatuses
-import Stations
-import SystemInformation
-import bikeOperators.Operators
-import bikeOperators.getOperator
-import bikeOperators.getOperatorsWithDiscovery
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import getDiscovery
-import getGbfsEndpoint
 import io.ktor.application.Application
 import io.ktor.application.call
 import io.ktor.client.HttpClient
@@ -25,11 +16,14 @@ import io.ktor.routing.routing
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.jetty.Jetty
 import java.time.LocalDateTime
-import org.entur.bikeOperators.KolumbusResponse
-import org.entur.bikeOperators.KolumbusStation
-import org.entur.bikeOperators.toStationInformation
-import org.entur.bikeOperators.toStationStatus
-import org.entur.bikeOperators.toSystemInformation
+import org.entur.mobility.bikes.bikeOperators.KolumbusResponse
+import org.entur.mobility.bikes.bikeOperators.KolumbusStation
+import org.entur.mobility.bikes.bikeOperators.Operators
+import org.entur.mobility.bikes.bikeOperators.getOperator
+import org.entur.mobility.bikes.bikeOperators.getOperatorsWithDiscovery
+import org.entur.mobility.bikes.bikeOperators.toStationInformation
+import org.entur.mobility.bikes.bikeOperators.toStationStatus
+import org.entur.mobility.bikes.bikeOperators.toSystemInformation
 
 fun main() {
     val server = embeddedServer(Jetty, watchPaths = listOf("bikeservice"), port = 8080, module = Application::module)
@@ -37,9 +31,21 @@ fun main() {
 }
 
 fun Application.module() {
-    val systemInformationCache = InMemoryCache<GBFSResponse<SystemInformation>>(HashMap(), LocalDateTime.now())
-    val stationInformationCache = InMemoryCache<GBFSResponse<Stations>>(HashMap(), LocalDateTime.now())
-    val stationStatusCache = InMemoryCache<GBFSResponse<StationStatuses>>(HashMap(), LocalDateTime.now())
+    val systemInformationCache =
+        InMemoryCache<GBFSResponse.SystemInformationResponse>(
+            HashMap(),
+            LocalDateTime.now()
+        )
+    val stationInformationCache =
+        InMemoryCache<GBFSResponse.StationsResponse>(
+            HashMap(),
+            LocalDateTime.now()
+        )
+    val stationStatusCache =
+        InMemoryCache<GBFSResponse.StationStatusesResponse>(
+            HashMap(),
+            LocalDateTime.now()
+        )
 
     routing {
         get("/") {
@@ -52,7 +58,11 @@ fun Application.module() {
 
         get("{operator}/gbfs.json") {
             val operator = Operators.valueOf(call.parameters["operator"]?.toUpperCase() ?: throw NullPointerException())
-            val gbfsEndpoints = getGbfsEndpoint(operator, call.request.host(), call.request.port())
+            val gbfsEndpoints = getGbfsEndpoint(
+                operator,
+                call.request.host(),
+                call.request.port()
+            )
             val response = getDiscovery(gbfsEndpoints)
             call.respondText(Gson().toJson(response), ContentType.Application.Json)
         }
@@ -62,13 +72,18 @@ fun Application.module() {
             val result = when {
                 systemInformationCache.isValidCache(operator) -> systemInformationCache.getResponseFromCache(operator)
                 operator === Operators.KOLUMBUSBYSYKKEL -> {
-                    val response = KolumbusResponse(data = parseKolumbusResponse(getOperator(operator).system_information)).toSystemInformation()
+                    val response = KolumbusResponse(
+                        data = parseKolumbusResponse(
+                            getOperator(operator).system_information
+                        )
+                    ).toSystemInformation()
                     systemInformationCache.setResponseInCacheAndGet(operator, response)
                 }
                 else -> {
-                    val response = parseResponse<GBFSResponse<SystemInformation>>(
-                        getOperator(operator).system_information
-                    )
+                    val response =
+                        parseResponse<GBFSResponse.SystemInformationResponse>(
+                            getOperator(operator).system_information
+                        )
                     systemInformationCache.setResponseInCacheAndGet(operator, response)
                 }
             }
@@ -82,15 +97,17 @@ fun Application.module() {
                     operator
                 )
                 operator === Operators.KOLUMBUSBYSYKKEL -> {
-                    val response = KolumbusResponse(data = parseKolumbusResponse(
-                        getOperator(operator).station_information
-                    )).toStationInformation()
+                    val response = KolumbusResponse(
+                        data = parseKolumbusResponse(
+                            getOperator(operator).station_information
+                        )
+                    ).toStationInformation().toNeTEx(operator)
                     stationInformationCache.setResponseInCacheAndGet(operator, response)
                 }
                 else -> {
-                    val response = parseResponse<GBFSResponse<Stations>>(
+                    val response = parseResponse<GBFSResponse.StationsResponse>(
                         getOperator(operator).station_information
-                    )
+                    ).toNeTEx(operator)
                     stationInformationCache.setResponseInCacheAndGet(operator, response)
                 }
             }
@@ -102,16 +119,17 @@ fun Application.module() {
             val result = when {
                 (stationStatusCache.isValidCache(operator)) -> stationStatusCache.getResponseFromCache(operator)
                 operator === Operators.KOLUMBUSBYSYKKEL -> {
-                    val response = KolumbusResponse(data = parseKolumbusResponse(
-                        getOperator(operator).station_status
-                    )
-                    ).toStationStatus()
+                    val response = KolumbusResponse(
+                        data = parseKolumbusResponse(
+                            getOperator(operator).station_status
+                        )
+                    ).toStationStatus().toNeTEx(operator)
                     stationStatusCache.setResponseInCacheAndGet(operator, response)
                 }
                 else -> {
-                    val response = parseResponse<GBFSResponse<StationStatuses>>(
+                    val response = parseResponse<GBFSResponse.StationStatusesResponse>(
                         getOperator(operator).station_status
-                    )
+                    ).toNeTEx(operator)
                     stationStatusCache.setResponseInCacheAndGet(operator, response)
                 }
             }

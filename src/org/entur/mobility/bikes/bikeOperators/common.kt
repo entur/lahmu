@@ -1,17 +1,19 @@
-package bikeOperators
+package org.entur.mobility.bikes.bikeOperators
 
-import GbfsStandard
-import getGbfsEndpoint
-import org.entur.bikeOperators.bergenBysykkelURL
-import org.entur.bikeOperators.kolumbusBysykkelURL
-import org.entur.bikeOperators.osloBysykkelURL
-import org.entur.bikeOperators.trondheimBysykkelURL
+import org.entur.mobility.bikes.GbfsStandard
+import org.entur.mobility.bikes.getGbfsEndpoint
 
 enum class Operators {
     OSLOBYSYKKEL, BERGENBYSYKKEL, TRONDHEIMBYSYKKEL, KOLUMBUSBYSYKKEL;
 
     companion object {
         fun isUrbanSharing(operators: Operators) = operators !== KOLUMBUSBYSYKKEL
+        fun getCodeSpace(operator: Operators) = when (operator) {
+            OSLOBYSYKKEL -> "YOS"
+            BERGENBYSYKKEL -> "YBE"
+            TRONDHEIMBYSYKKEL -> "YTR"
+            KOLUMBUSBYSYKKEL -> "YKO"
+        }
     }
 }
 
@@ -27,3 +29,5 @@ fun getOperator(operator: Operators): GbfsStandard =
         Operators.TRONDHEIMBYSYKKEL -> trondheimBysykkelURL
         Operators.KOLUMBUSBYSYKKEL -> kolumbusBysykkelURL
     }
+
+fun mapIdToNeTEx(id: String, operator: Operators) = "${Operators.getCodeSpace(operator)}:BikeStation:$id"
