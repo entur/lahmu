@@ -2,7 +2,7 @@
 <TargetEndpoint name="default">
     <DefaultFaultRule name="target-fault">
         <Step>
-            <Name>assignMessage.addCors</Name>
+            <Name>add-cors</Name>
         </Step>
     </DefaultFaultRule>
     <PreFlow name="PreFlow">

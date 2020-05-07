@@ -49,7 +49,9 @@ fun Application.module() {
 
     routing {
         get("/") {
-            call.respondText("Hello and welcome to Entur Bikeservice!", ContentType.Application.Json)
+            val host = call.request.host()
+            val port = call.request.port()
+            call.respondText(Gson().toJson(getOperatorsWithDiscovery(host, port)), ContentType.Application.Json)
         }
 
         get("/health") {
@@ -134,11 +136,6 @@ fun Application.module() {
                 }
             }
             call.respondText(Gson().toJson(result), ContentType.Application.Json)
-        }
-        get("/all") {
-            val host = call.request.host()
-            val port = call.request.port()
-            call.respondText(Gson().toJson(getOperatorsWithDiscovery(host, port)), ContentType.Application.Json)
         }
     }
 }
