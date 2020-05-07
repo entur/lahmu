@@ -30,7 +30,7 @@ import org.entur.mobility.bikes.bikeOperators.toStationInformation
 import org.entur.mobility.bikes.bikeOperators.toStationStatus
 import org.entur.mobility.bikes.bikeOperators.toSystemInformation
 
-val POLL_INTERVAL = 60000L
+const val POLL_INTERVAL = 15000L
 
 fun main() {
     val server = embeddedServer(Jetty, watchPaths = listOf("bikeservice"), port = 8080, module = Application::module)
@@ -43,9 +43,9 @@ fun Application.module() {
     val stationStatusCache = InMemoryCache<GBFSResponse.StationStatusesResponse>(HashMap(), LocalDateTime.now())
 
     thread(start = true) {
-        launch { poll(systemInformationCache) }
-        launch { poll(stationInformationCache) }
-        launch { poll(stationStatusCache) }
+        launch { poll(systemInformationCache) { it.toSystemInformation() } }
+        launch { poll(stationInformationCache) { it.toStationInformation() } }
+        launch { poll(stationStatusCache) { it.toStationStatus() } }
     }
 
     routing {
@@ -155,7 +155,7 @@ suspend inline fun parseKolumbusResponse(url: String): List<KolumbusStation> {
     }
 }
 
-suspend inline fun <reified T> poll(cache: InMemoryCache<T>) {
+suspend inline fun <reified T> poll(cache: InMemoryCache<T>, parseNonGbfsFn: (KolumbusResponse) -> T) {
     while (true) {
         delay(POLL_INTERVAL)
         Operator.values().forEach {
@@ -164,6 +164,7 @@ suspend inline fun <reified T> poll(cache: InMemoryCache<T>) {
                 cache.setResponseInCacheAndGet(it, response)
             } else {
                 val response = parseKolumbusResponse(kolumbusBysykkelURL.system_information)
+                cache.setResponseInCacheAndGet(it, parseNonGbfsFn(KolumbusResponse(response)))
             }
         }
     }
