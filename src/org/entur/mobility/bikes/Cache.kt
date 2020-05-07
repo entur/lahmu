@@ -13,10 +13,8 @@ class InMemoryCache<T>(
     override var lastUpdated: LocalDateTime
 
 ) : Cache<T> {
-    fun getResponseFromCache(bikeOperator: Operator): T? {
-        println("Got cached response!")
-        return cacheMap[bikeOperator]
-    }
+    fun getResponseFromCache(bikeOperator: Operator): T? =
+        cacheMap[bikeOperator]
 
     fun setResponseInCacheAndGet(bikeOperator: Operator, response: T): T {
         cacheMap[bikeOperator] = response

@@ -13,6 +13,16 @@ data class GbfsStandard(
     val station_status: String
 )
 
+inline fun <reified T> GbfsStandard.getGbfsEndpoint(): String {
+    return when (T::class) {
+        GBFSResponse.DiscoveryResponse::class -> this.gbfs
+        GBFSResponse.SystemInformationResponse::class -> this.system_information
+        GBFSResponse.StationsResponse::class -> this.station_information
+        GBFSResponse.StationStatusesResponse::class -> this.station_status
+        else -> throw Exception("Not a valid GBFS response.")
+    }
+}
+
 sealed class GBFSResponse<T>(
     val last_updated: Long,
     val ttl: Long,

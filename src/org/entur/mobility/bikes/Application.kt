@@ -17,17 +17,20 @@ import io.ktor.server.engine.embeddedServer
 import io.ktor.server.jetty.Jetty
 import java.time.LocalDateTime
 import kotlin.concurrent.thread
-import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.entur.mobility.bikes.bikeOperators.KolumbusResponse
 import org.entur.mobility.bikes.bikeOperators.KolumbusStation
 import org.entur.mobility.bikes.bikeOperators.Operator
 import org.entur.mobility.bikes.bikeOperators.Operator.Companion.getFetchUrls
+import org.entur.mobility.bikes.bikeOperators.Operator.Companion.isUrbanSharing
 import org.entur.mobility.bikes.bikeOperators.getOperatorsWithDiscovery
+import org.entur.mobility.bikes.bikeOperators.kolumbusBysykkelURL
 import org.entur.mobility.bikes.bikeOperators.toStationInformation
 import org.entur.mobility.bikes.bikeOperators.toStationStatus
 import org.entur.mobility.bikes.bikeOperators.toSystemInformation
+
+val POLL_INTERVAL = 60000L
 
 fun main() {
     val server = embeddedServer(Jetty, watchPaths = listOf("bikeservice"), port = 8080, module = Application::module)
@@ -40,51 +43,9 @@ fun Application.module() {
     val stationStatusCache = InMemoryCache<GBFSResponse.StationStatusesResponse>(HashMap(), LocalDateTime.now())
 
     thread(start = true) {
-        val delayInMilliseconds = 15000L
-
-        launch {
-            async {
-                while (true) {
-                    delay(delayInMilliseconds)
-                    Operator.values().forEach {
-                        if (it != Operator.KOLUMBUSBYSYKKEL) {
-                            val response = parseResponse<GBFSResponse.SystemInformationResponse>(
-                                it.getFetchUrls().system_information
-                            )
-                            systemInformationCache.setResponseInCacheAndGet(it, response)
-                        }
-                    }
-                }
-            }
-
-            async {
-                while (true) {
-                    delay(delayInMilliseconds)
-                    Operator.values().forEach {
-                        if (it != Operator.KOLUMBUSBYSYKKEL) {
-                            val response = parseResponse<GBFSResponse.StationsResponse>(
-                                it.getFetchUrls().station_information
-                            )
-                            stationInformationCache.setResponseInCacheAndGet(it, response)
-                        }
-                    }
-                }
-            }
-
-            async {
-                while (true) {
-                    delay(delayInMilliseconds)
-                    Operator.values().forEach {
-                        if (it != Operator.KOLUMBUSBYSYKKEL) {
-                            val response = parseResponse<GBFSResponse.StationStatusesResponse>(
-                                it.getFetchUrls().station_status
-                            )
-                            stationStatusCache.setResponseInCacheAndGet(it, response)
-                        }
-                    }
-                }
-            }
-        }
+        launch { poll(systemInformationCache) }
+        launch { poll(stationInformationCache) }
+        launch { poll(stationStatusCache) }
     }
 
     routing {
@@ -158,8 +119,8 @@ fun Application.module() {
                         data = parseKolumbusResponse(
                             operator.getFetchUrls().station_status
                         )
-                        )
-                    .toStationStatus().toNeTEx(operator)
+                    )
+                        .toStationStatus().toNeTEx(operator)
                     stationStatusCache.setResponseInCacheAndGet(operator, response)
                 }
                 else -> {
@@ -191,5 +152,19 @@ suspend inline fun parseKolumbusResponse(url: String): List<KolumbusStation> {
         val response = get<String>(url) { header("Client-Identifier", "entur-bikeservice") }
         val itemType = object : TypeToken<List<KolumbusStation>>() {}.type
         return Gson().fromJson(response, itemType)
+    }
+}
+
+suspend inline fun <reified T> poll(cache: InMemoryCache<T>) {
+    while (true) {
+        delay(POLL_INTERVAL)
+        Operator.values().forEach {
+            if (it.isUrbanSharing()) {
+                val response = parseResponse<T>(it.getFetchUrls().getGbfsEndpoint<T>())
+                cache.setResponseInCacheAndGet(it, response)
+            } else {
+                val response = parseKolumbusResponse(kolumbusBysykkelURL.system_information)
+            }
+        }
     }
 }
