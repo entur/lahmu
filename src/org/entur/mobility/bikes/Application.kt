@@ -61,7 +61,6 @@ fun Application.module() {
         }
 
         get("{operator}/{service}.json") {
-            val startTime = System.currentTimeMillis()
             val operator = Operator.valueOf(call.parameters["operator"]?.toUpperCase() ?: throw NullPointerException())
             val gbfsEnum = GbfsStandardEnum.valueOf(call.parameters["service"] ?: throw NullPointerException())
             if (!cache.isValidCache(operator, gbfsEnum)) {
