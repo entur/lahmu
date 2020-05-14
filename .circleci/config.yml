@@ -8,9 +8,10 @@ executors:
 orbs:
   gradle: circleci/gradle@2.1.0
   docker: circleci/docker@1.0.1
+  owasp: entur/owasp@0.0.10
 
 jobs:
-  Build:
+  build:
     executor: java-11
     steps:
       - checkout
@@ -25,7 +26,7 @@ jobs:
 workflows:
   Build-Publish:
     jobs:
-      - Build
+      - build
       - docker/publish:
           name: release
           registry: $DOCKER_REGISTRY
@@ -49,4 +50,6 @@ workflows:
                   git tag $VERSION
                   git push origin $VERSION
           requires:
-            - Build
+
+      - owasp/gradle_owasp_dependency_check:
+          executor: java-11
