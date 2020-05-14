@@ -9,6 +9,7 @@ orbs:
   gradle: circleci/gradle@2.1.0
   docker: circleci/docker@1.0.1
   owasp: entur/owasp@0.0.10
+  slack: circleci/slack@3.4.2
 
 jobs:
   build:
@@ -22,6 +23,14 @@ jobs:
           root: .
           paths:
             - build/libs/
+
+  slack_it:
+    executor: java-11
+    steps:
+      - slack/status:
+          fail_only: false
+          failure_message: "Docker image cotains unapproved vulnerabilities"
+          webhook: '${SLACK_WEBHOOK}'
 
 workflows:
   Build-Publish:
@@ -50,6 +59,6 @@ workflows:
                   git tag $VERSION
                   git push origin $VERSION
           requires:
-
-      - owasp/gradle_owasp_dependency_check:
+      - owasp/owasp_dependency_check:
           executor: java-11
+      - slack_it
