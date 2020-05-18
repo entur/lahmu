@@ -18,7 +18,6 @@ import io.ktor.routing.get
 import io.ktor.routing.routing
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.jetty.Jetty
-import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.prometheus.PrometheusConfig
 import io.micrometer.prometheus.PrometheusMeterRegistry
 import java.lang.Exception
@@ -35,7 +34,10 @@ import org.entur.mobility.bikes.bikeOperators.kolumbusBysykkelURL
 import org.entur.mobility.bikes.bikeOperators.toStationInformation
 import org.entur.mobility.bikes.bikeOperators.toStationStatus
 import org.entur.mobility.bikes.bikeOperators.toSystemInformation
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+
+val logger: Logger = LoggerFactory.getLogger("org.entur.mobility.bikes")
 
 fun main() {
     val server = embeddedServer(Jetty, watchPaths = listOf("bikeservice"), port = 8080, module = Application::module)
@@ -47,7 +49,7 @@ fun Application.module() {
     val meterRegistry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
 
     thread(start = true) {
-        launch { poll(cache, meterRegistry) }
+        launch { poll(cache) }
     }
     install(MicrometerMetrics) {
         registry = meterRegistry
@@ -85,7 +87,6 @@ fun Application.module() {
             val correlationId = call.request.headers.get("x-correlation-id")
             val gbfsEnum = GbfsStandardEnum.valueOf(call.parameters["service"] ?: throw NullPointerException())
             if (!cache.isValidCache(operator, gbfsEnum)) {
-                val logger = LoggerFactory.getLogger("org.entur.mobility.bikes")
                 try {
                     fetchAndStoreInCache(
                         cache = cache,
@@ -104,30 +105,28 @@ fun Application.module() {
 }
 
 suspend inline fun <reified T> parseResponse(url: String): T {
-    with(HttpClient()) {
-        val response = get<String>(url) { header("Client-Identifier", "entur-bikeservice") }
-        return Gson().fromJson(response, T::class.java)
-    }
+    val client = HttpClient()
+    val response = client.get<String>(url) { header("Client-Identifier", "entur-bikeservice") }
+    client.close()
+    return Gson().fromJson(response, T::class.java)
 }
 
 suspend inline fun parseKolumbusResponse(): List<KolumbusStation> {
-    with(HttpClient()) {
-        val response = get<String>(kolumbusBysykkelURL.getValue(GbfsStandardEnum.system_information)) {
+    val client = HttpClient()
+    val response = client.get<String>(kolumbusBysykkelURL.getValue(GbfsStandardEnum.system_information)) {
             header(
                 "Client-Identifier",
                 "entur-bikeservice"
             )
         }
-        val itemType = object : TypeToken<List<KolumbusStation>>() {}.type
-        return Gson().fromJson(response, itemType)
-    }
+    client.close()
+    val itemType = object : TypeToken<List<KolumbusStation>>() {}.type
+    return Gson().fromJson(response, itemType)
 }
 
-suspend inline fun poll(cache: InMemoryCache, meterRegistry: MeterRegistry) {
-    val logger = LoggerFactory.getLogger("org.entur.mobility.bikes")
+suspend inline fun poll(cache: InMemoryCache) {
     while (true) {
         Operator.values().forEach { operator ->
-            meterRegistry.counter("poll", "operator", operator.toString()).increment()
             logger.info("Polling $operator")
             try {
                 if (operator.isUrbanSharing()) {
