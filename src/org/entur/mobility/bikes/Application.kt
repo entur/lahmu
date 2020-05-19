@@ -43,6 +43,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 val logger: Logger = LoggerFactory.getLogger("org.entur.mobility.bikes")
+val client: HttpClient = HttpClient()
 
 fun main() {
     val server = embeddedServer(Jetty, watchPaths = listOf("bikeservice"), port = 8080, module = Application::module)
@@ -110,27 +111,22 @@ fun Application.module() {
 }
 
 suspend inline fun <reified T> parseResponse(url: String): T {
-    val client = HttpClient()
     val response = client.get<String>(url) { header("Client-Identifier", "entur-bikeservice") }
-    client.close()
     return Gson().fromJson(response, T::class.java)
 }
 
 suspend inline fun parseKolumbusResponse(): List<KolumbusStation> {
-    val client = HttpClient()
     val response = client.get<String>(kolumbusBysykkelURL.getValue(GbfsStandardEnum.system_information)) {
             header(
                 "Client-Identifier",
                 "entur-bikeservice"
             )
         }
-    client.close()
     val itemType = object : TypeToken<List<KolumbusStation>>() {}.type
     return Gson().fromJson(response, itemType)
 }
 
 suspend inline fun parseJCDecauxResponse(): List<JCDecauxStation> {
-    val client = HttpClient()
     logger.info("API_KEY: ${LILLESTROM_API_KEY?.get(0) ?: "null"}")
     val response = client.get<String>(lillestromBysykkelURL.getValue(GbfsStandardEnum.system_information)) {
         header(
