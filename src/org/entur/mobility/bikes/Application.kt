@@ -49,7 +49,6 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 val logger: Logger = LoggerFactory.getLogger("org.entur.mobility.bikes")
-val client: HttpClient = HttpClient()
 
 fun main() {
     val server = embeddedServer(Jetty, watchPaths = listOf("bikeservice"), port = 8080, module = Application::module)
@@ -119,28 +118,18 @@ fun Application.module() {
 }
 
 suspend inline fun <reified T> parseResponse(url: String): T {
-    val response = client.get<String>(url) { header("Client-Identifier", "entur-bikeservice") }
+    val response = fetch(url)
     return Gson().fromJson(response, T::class.java)
 }
 
 suspend inline fun parseKolumbusResponse(): List<KolumbusStation> {
-    val response = client.get<String>(kolumbusBysykkelURL.getValue(GbfsStandardEnum.system_information)) {
-            header(
-                "Client-Identifier",
-                "entur-bikeservice"
-            )
-        }
+    val response = fetch(kolumbusBysykkelURL.getValue(GbfsStandardEnum.system_information))
     val itemType = object : TypeToken<List<KolumbusStation>>() {}.type
     return Gson().fromJson(response, itemType)
 }
 
 suspend inline fun parseJCDecauxResponse(): List<JCDecauxStation> {
-    val response = client.get<String>(lillestromBysykkelURL.getValue(GbfsStandardEnum.system_information)) {
-        header(
-            "Client-Identifier",
-            "entur-bikeservice"
-        )
-    }
+    val response = fetch(lillestromBysykkelURL.getValue(GbfsStandardEnum.system_information))
     val itemType = object : TypeToken<List<JCDecauxStation>>() {}.type
     return Gson().fromJson(response, itemType)
 }
@@ -252,4 +241,11 @@ suspend fun setDrammenAccessToken() {
     }
     DRAMMEN_ACCESS_TOKEN = response?.access_token ?: ""
     delay(response?.expires_in?.div(2)?.times(1000) ?: 1000)
+}
+
+suspend fun fetch(url: String): String {
+    val client = HttpClient()
+    val response = client.get<String>(url) { header("Client-Identifier", "entur-bikeservice") }
+    client.close()
+    return response
 }
