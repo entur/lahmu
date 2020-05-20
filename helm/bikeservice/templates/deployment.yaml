@@ -27,9 +27,7 @@ spec:
     metadata:
     {{- if .Values.deployment.podAnnotations }}
       annotations:
-        prometheus.io/scrape: "true"
-        prometheus.io/path: "/actuator/prometheus"
-        prometheus.io/port: {{ .Values.service.internalPort }}
+
 {{ toYaml .Values.deployment.podAnnotations | indent 8 }}
     {{- end }}
       labels:

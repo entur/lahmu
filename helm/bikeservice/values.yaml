@@ -11,7 +11,10 @@ deployment:
   strategy:
     type: RollingUpdate
   terminationGracePeriodSeconds: 30
-#  podAnnotations: true
+  podAnnotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/path: "/actuator/prometheus"
+    prometheus.io/port: 8080
 
 service:
   type: ClusterIP
