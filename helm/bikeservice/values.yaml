@@ -35,6 +35,16 @@ container:
        secretKeyRef:
          name: bikeservice-secrets
          key: lillestromApiKey
+   - name: DRAMMEN_SECRET
+       valueFrom:
+         secretKeyRef:
+           name: bikeservice-secrets
+           key: drammenSecret
+   - name: DRAMMEN_PUBLIC_ID
+       valueFrom:
+         secretKeyRef:
+           name: bikeservice-secrets
+           key: drammenPublicId
   # - name: PG_DB_USERNAME
   #   valueFrom:
   #     secretKeyRef:
@@ -146,4 +156,6 @@ secrets:
   app:
     name: bikeservice-secrets
     lillestromApiKey: ${serviceVariable.lillestromApiKey}
-    
+    drammenPublicId: ${serviceVariable.drammenPublicId}
+    drammenSecret: ${serviceVariable.drammenSecret}
+
