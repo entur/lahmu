@@ -28,11 +28,23 @@ class InMemoryCache(
         return response
     }
 
-    fun isValidCache(bikeOperator: Operator, gbfsStandardEnum: GbfsStandardEnum): Boolean =
-        LocalDateTime.ofEpochSecond(
-            cacheMap[bikeOperator]?.get(gbfsStandardEnum)?.last_updated ?: 0L,
-            0,
-            ZoneOffset.UTC
-        ) > LocalDateTime.now()
-            .minusSeconds(TIME_TO_LIVE_CACHE_SEC)
+    fun isValidCache(bikeOperator: Operator, gbfsStandardEnum: GbfsStandardEnum): Boolean {
+        val drammenCheck =
+            if (bikeOperator == Operator.DRAMMENBYSYKKEL && gbfsStandardEnum == GbfsStandardEnum.station_information) {
+                cacheCheck(cacheMap, bikeOperator, GbfsStandardEnum.station_status)
+            } else true
+        return cacheCheck(cacheMap, bikeOperator, gbfsStandardEnum) && drammenCheck
+    }
 }
+
+fun cacheCheck(
+    cacheMap: HashMap<Operator, HashMap<GbfsStandardEnum, GBFSResponse>>,
+    bikeOperator: Operator,
+    gbfsStandardEnum: GbfsStandardEnum
+) =
+    LocalDateTime.ofEpochSecond(
+        cacheMap[bikeOperator]?.get(gbfsStandardEnum)?.last_updated ?: 0L,
+        0,
+        ZoneOffset.UTC
+    ) > LocalDateTime.now()
+        .minusSeconds(TIME_TO_LIVE_CACHE_SEC)
