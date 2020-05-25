@@ -225,13 +225,15 @@ suspend fun fetchAndStoreInCache(
                 drammenSystemInformation()
             }
             GbfsStandardEnum.station_information -> {
-                val stationsStatusResponse = parseResponse<DrammenStationsStatusResponse>(
-                    gbfsStandardEnum.getFetchUrl(
-                        operator,
-                        DRAMMEN_ACCESS_TOKEN
-                    )
-                )
-                cache.setResponseInCacheAndGet(operator, gbfsStandardEnum, stationsStatusResponse.toStationStatuses())
+                val stationsStatusResponse = suspend {
+                    parseResponse<DrammenStationsStatusResponse>(
+                        gbfsStandardEnum.getFetchUrl(
+                            operator,
+                            DRAMMEN_ACCESS_TOKEN
+                        )
+                    ).toStationStatuses()
+                }.invoke()
+                cache.setResponseInCacheAndGet(operator, gbfsStandardEnum, stationsStatusResponse)
                 parseResponse<DrammenStationsResponse>(
                     gbfsStandardEnum.getFetchUrl(
                         operator,
