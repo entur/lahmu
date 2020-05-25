@@ -74,7 +74,7 @@ fun drammenSystemInformation() = GBFSResponse.SystemInformationResponse(
     )
 )
 
-fun DrammenStationsResponse.toStationInformation(statusResponse: DrammenStationsStatusResponse) =
+fun DrammenStationsResponse.toStationInformation(statusResponse: GBFSResponse.StationStatusesResponse?) =
     GBFSResponse.StationsInformationResponse(
         last_updated = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC),
         ttl = TTL,
@@ -86,8 +86,12 @@ fun DrammenStationsResponse.toStationInformation(statusResponse: DrammenStations
                     lat = it.location.lat.toBigDecimal(),
                     lon = it.location.lon.toBigDecimal(),
                     name = it.name,
-                    capacity = statusResponse.stationsStatus.find { status -> status.id == it.id }
-                        .let { station -> (station?.availability?.slots ?: 0) + (station?.availability?.bikes ?: 0) }
+                    capacity = statusResponse?.data?.stations?.find { status ->
+                        status.station_id == mapIdToNeTEx(
+                            it.id,
+                            Operator.DRAMMENBYSYKKEL
+                        )
+                    }?.let { station -> (station.num_bikes_available) + (station.num_docks_available) } ?: 0
                 )
             }
         )
