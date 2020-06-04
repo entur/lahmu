@@ -33,7 +33,12 @@ class InMemoryCache(
             if (bikeOperator == Operator.DRAMMENBYSYKKEL && gbfsStandardEnum == GbfsStandardEnum.station_information) {
                 cacheCheck(cacheMap, bikeOperator, GbfsStandardEnum.station_status)
             } else true
-        return cacheCheck(cacheMap, bikeOperator, gbfsStandardEnum) && drammenCheck
+        val ottoCheck =
+            if (bikeOperator == Operator.OTTO && (gbfsStandardEnum == GbfsStandardEnum.station_information || gbfsStandardEnum == GbfsStandardEnum.station_status)) {
+                cacheCheck(cacheMap, bikeOperator, GbfsStandardEnum.station_status) &&
+                cacheCheck(cacheMap, bikeOperator, GbfsStandardEnum.station_information)
+            } else true
+        return cacheCheck(cacheMap, bikeOperator, gbfsStandardEnum) && drammenCheck && ottoCheck
     }
 }
 

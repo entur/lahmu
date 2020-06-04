@@ -19,3 +19,5 @@ fun containsNumbersLowercaseLettersAndDashes(inputValue: String): Boolean {
     }
     return true
 }
+
+fun booleanToInt(bool: Boolean) = if (bool) 1 else 0
