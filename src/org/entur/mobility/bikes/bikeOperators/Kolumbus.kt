@@ -31,7 +31,7 @@ data class KolumbusStation(
     val longitude: BigDecimal
 )
 
-fun KolumbusResponse.toSystemInformation(): GBFSResponse.SystemInformationResponse =
+fun KolumbusResponse.jcDecauxSystemInformation(): GBFSResponse.SystemInformationResponse =
     GBFSResponse.SystemInformationResponse(
         last_updated = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC),
         ttl = TTL,
@@ -89,7 +89,7 @@ fun kolumbusSystemPricingPlans() = GBFSResponse.SystemPricingPlans(
             name = PricePlan.DAY_PASS_30.toString(),
             currency = "NOK",
             price = 125.0,
-            is_taxable = 1,
+            is_taxable = 0,
             description = "For usage above an hour, it will follow a running cost of 1.0 NOK per minute."
         ),
         SystemPricePlan(
@@ -98,7 +98,7 @@ fun kolumbusSystemPricingPlans() = GBFSResponse.SystemPricingPlans(
             name = PricePlan.ADD_ON_PASS.toString(),
             currency = "NOK",
             price = 0.0,
-            is_taxable = 1,
+            is_taxable = 0,
             description = "With any valid ticket in the Kolumbus app, the city bike is available for free up to an hour. " +
                 "For usage above an hour, it will follow a running cost of 1.0 NOK per minute."
         )

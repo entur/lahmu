@@ -45,6 +45,7 @@ import org.entur.mobility.bikes.bikeOperators.Operator.Companion.isUrbanSharing
 import org.entur.mobility.bikes.bikeOperators.drammenSystemInformation
 import org.entur.mobility.bikes.bikeOperators.drammenSystemPricingPlan
 import org.entur.mobility.bikes.bikeOperators.getOperatorsWithDiscovery
+import org.entur.mobility.bikes.bikeOperators.jcDecauxSystemInformation
 import org.entur.mobility.bikes.bikeOperators.jcDecauxSystemPricingPlans
 import org.entur.mobility.bikes.bikeOperators.kolumbusBysykkelURL
 import org.entur.mobility.bikes.bikeOperators.kolumbusSystemPricingPlans
@@ -52,7 +53,6 @@ import org.entur.mobility.bikes.bikeOperators.lillestromBysykkelURL
 import org.entur.mobility.bikes.bikeOperators.toStationInformation
 import org.entur.mobility.bikes.bikeOperators.toStationStatus
 import org.entur.mobility.bikes.bikeOperators.toStationStatuses
-import org.entur.mobility.bikes.bikeOperators.toSystemInformation
 import org.entur.mobility.bikes.bikeOperators.urbanSharingSystemPricePlan
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -219,7 +219,7 @@ fun fetchAndStoreInCache(
         cache.setResponseInCacheAndGet(
             operator,
             GbfsStandardEnum.system_information,
-            response.toSystemInformation()
+            response.jcDecauxSystemInformation()
         )
         cache.setResponseInCacheAndGet(
             operator,
@@ -237,12 +237,17 @@ fun fetchAndStoreInCache(
             kolumbusSystemPricingPlans()
         )
     } else if (operator.isJCDecaux()) {
-        val response = JCDecauxResponse(data = parseJCDecauxResponse())
+        cache.setResponseInCacheAndGet(
+            operator,
+            GbfsStandardEnum.system_pricing_plans,
+            jcDecauxSystemPricingPlans()
+        )
         cache.setResponseInCacheAndGet(
             operator,
             GbfsStandardEnum.system_information,
-            response.toSystemInformation()
+            jcDecauxSystemInformation()
         )
+        val response = JCDecauxResponse(data = parseJCDecauxResponse())
         cache.setResponseInCacheAndGet(
             operator,
             GbfsStandardEnum.station_status,
@@ -253,12 +258,11 @@ fun fetchAndStoreInCache(
             GbfsStandardEnum.station_information,
             response.toStationInformation()
         )
-        cache.setResponseInCacheAndGet(
-            operator,
-            GbfsStandardEnum.system_pricing_plans,
-            jcDecauxSystemPricingPlans()
-        )
     } else if (operator.isDrammenSmartBike()) {
+        if (gbfsStandardEnum == GbfsStandardEnum.system_pricing_plans) {
+            cache.setResponseInCacheAndGet(operator, gbfsStandardEnum, drammenSystemPricingPlan())
+            return
+        }
         if (DRAMMEN_ACCESS_TOKEN == "") fetchAndSetDrammenAccessToken()
         val response = when (gbfsStandardEnum) {
             GbfsStandardEnum.gbfs -> {

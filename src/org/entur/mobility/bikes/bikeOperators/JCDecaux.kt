@@ -86,7 +86,7 @@ fun JCDecauxResponse.toStationInformation(): GBFSResponse.StationsInformationRes
         )
     )
 
-fun JCDecauxResponse.toSystemInformation(): GBFSResponse.SystemInformationResponse =
+fun jcDecauxSystemInformation(): GBFSResponse.SystemInformationResponse =
     GBFSResponse.SystemInformationResponse(
         last_updated = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC),
         ttl = TTL,
