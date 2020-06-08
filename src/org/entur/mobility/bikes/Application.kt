@@ -161,6 +161,8 @@ fun parseJCDecauxResponse(): List<JCDecauxStation> {
 fun poll(cache: InMemoryCache) {
     Operator.values().forEach { operator ->
         GlobalScope.async {
+            logger.info("System.getenv(): ${System.getenv().keys}")
+            logger.info("System.getenv(): ${System.getenv()}")
             logger.info("Polling $operator")
             try {
                 if (operator.isUrbanSharing()) {
