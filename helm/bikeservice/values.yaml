@@ -3,7 +3,7 @@ labels:
   slack: talk-mobilitet
   type: backend
 
-namespace: dev
+namespace: unset
 
 deployment:
   enabled: true
@@ -48,6 +48,11 @@ container:
        secretKeyRef:
          name: bikeservice-secrets
          key: drammenPublicId
+   - name: ENVIRONMENT_NAMESPACE
+     valueFrom:
+       fieldRef:
+         fieldPath: metadata.namespace
+
   # - name: PG_DB_USERNAME
   #   valueFrom:
   #     secretKeyRef:
