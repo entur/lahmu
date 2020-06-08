@@ -302,3 +302,5 @@ fun fetch(url: String): String {
     val response = runBlocking { client.get<String>(url) { header("Client-Identifier", "entur-bikeservice") } }
     return response
 }
+
+val Application.envKind get() = environment.config.property("ktor.environment").getString()

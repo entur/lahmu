@@ -48,6 +48,9 @@ container:
        secretKeyRef:
          name: bikeservice-secrets
          key: drammenPublicId
+  - name: ENVIRONMENT_HOST
+    value: ${infra.kubernetes.namespace}
+
   # - name: PG_DB_USERNAME
   #   valueFrom:
   #     secretKeyRef:
