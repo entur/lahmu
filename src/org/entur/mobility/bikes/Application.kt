@@ -101,7 +101,6 @@ fun Application.module() {
         get("/") {
             val host = call.request.host()
             val port = call.request.port()
-            logger.info("KTOR environment: ${environment.config.property("ktor.environment").getString()}")
 
             call.respondText(Gson().toJson(getOperatorsWithDiscovery(host, port)), ContentType.Application.Json)
         }
@@ -162,7 +161,7 @@ fun parseJCDecauxResponse(): List<JCDecauxStation> {
 fun poll(cache: InMemoryCache) {
     Operator.values().forEach { operator ->
         GlobalScope.async {
-            logger.info("System.getenv(): ${System.getenv()}")
+            logger.info("System.getenv(ENVIRONMENT_NAMESPACE): ${System.getenv("ENVIRONMENT_NAMESPACE")}")
             logger.info("Polling $operator")
             try {
                 if (operator.isUrbanSharing()) {
