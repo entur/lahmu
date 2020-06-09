@@ -11,17 +11,14 @@ enum class GbfsStandardEnum {
     gbfs,
     system_information,
     station_information,
-    station_status;
+    station_status,
+    system_pricing_plans;
 
     companion object {
-        fun GbfsStandardEnum.getFetchUrl(operator: Operator, accessToken: String = ""): String = when (this) {
-            gbfs -> operator.getFetchUrls(accessToken).getValue(this)
-            system_information -> operator.getFetchUrls(accessToken).getValue(this)
-            station_information -> operator.getFetchUrls(accessToken).getValue(this)
-            station_status -> operator.getFetchUrls(accessToken).getValue(this)
+        fun GbfsStandardEnum.getFetchUrl(operator: Operator, accessToken: String = ""): String =
+            operator.getFetchUrls(accessToken).getValue(this)
         }
     }
-}
 
 sealed class GBFSResponse(
     val last_updated: Long,
@@ -51,6 +48,8 @@ sealed class GBFSResponse(
             data = data.toNeTEx(operator)
         )
     }
+
+    class SystemPricingPlans(last_updated: Long, ttl: Long, val plans: List<SystemPricePlan>) : GBFSResponse(last_updated, ttl)
 }
 
 data class Discovery(val nb: DiscoveryLanguage)
@@ -86,6 +85,16 @@ data class StationStatus(
     val last_reported: BigDecimal,
     val num_bikes_available: Int,
     val num_docks_available: Int
+)
+
+data class SystemPricePlan(
+    val plan_id: String,
+    val url: String?,
+    val name: String,
+    val currency: String,
+    val price: Double,
+    val is_taxable: Int,
+    val description: String
 )
 
 fun StationsInformation.toNeTEx(operator: Operator): StationsInformation =
@@ -139,6 +148,10 @@ fun getDiscovery(gbfsStandard: Map<GbfsStandardEnum, String>): GBFSResponse =
                     DiscoveryFeed(
                         name = "station_status",
                         url = gbfsStandard.getValue(GbfsStandardEnum.station_status)
+                    ),
+                    DiscoveryFeed(
+                        name = "system_pricing_plans",
+                        url = gbfsStandard.getValue(GbfsStandardEnum.system_pricing_plans)
                     )
                 )
             )
@@ -152,6 +165,7 @@ fun getGbfsEndpoint(operator: Operator, host: String, port: Int): Map<GbfsStanda
         GbfsStandardEnum.gbfs to "$urlHost/$operator/gbfs.json".toLowerCase(),
         GbfsStandardEnum.system_information to "$urlHost/$operator/system_information.json".toLowerCase(),
         GbfsStandardEnum.station_information to "$urlHost/$operator/station_information.json".toLowerCase(),
-        GbfsStandardEnum.station_status to "$urlHost/$operator/station_status.json".toLowerCase()
+        GbfsStandardEnum.station_status to "$urlHost/$operator/station_status.json".toLowerCase(),
+        GbfsStandardEnum.system_pricing_plans to "$urlHost/$operator/system_pricing_plans.json".toLowerCase()
     )
 }

@@ -1,5 +1,9 @@
 package org.entur.mobility.bikes
 
+import java.time.LocalDateTime
+import java.time.Month
+import java.time.ZoneOffset
+
 val env: String? = System.getenv("ENVIRONMENT_NAMESPACE")
 val isProd = env == "production"
 
@@ -18,3 +22,6 @@ val DRAMMEN_SECRET = System.getenv("DRAMMEN_SECRET")
 var DRAMMEN_ACCESS_TOKEN: String = ""
 
 val DRAMMEN_ACCESS_TOKEN_URL = "https://drammen.pub.api.smartbike.com/oauth/v2/token?client_id=$DRAMMEN_PUBLIC_ID&client_secret=$DRAMMEN_SECRET&grant_type=client_credentials"
+
+val epochOf5thJune2020 = LocalDateTime.of(2020, Month.JUNE, 5, 0, 0).toEpochSecond(ZoneOffset.UTC)
+val epochOf31Dec2020 = LocalDateTime.of(2020, Month.DECEMBER, 31, 23, 59).toEpochSecond(ZoneOffset.UTC)

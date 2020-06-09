@@ -41,3 +41,20 @@ fun getOperatorsWithDiscovery(port: String, host: Int): Map<String, List<Map<Str
     })
 
 fun mapIdToNeTEx(id: String, operator: Operator) = "${operator.getCodeSpace()}:VehicleSharingParkingArea:$id"
+
+fun getSecondsFrom(fromEpoch: Long, toEpoch: Long): Long {
+    val diffMS = toEpoch - fromEpoch
+    return if (diffMS > 0) diffMS / 1000 else 0
+}
+
+enum class PricePlan {
+    SEASON_PASS, DAY_PASS_30, DAY_PASS_3, DAY_PASS_1, ADD_ON_PASS;
+
+    override fun toString() = when (this) {
+        SEASON_PASS -> "sesongkort"
+        DAY_PASS_30 -> "30-dagerskort"
+        DAY_PASS_1 -> "dagskort"
+        ADD_ON_PASS -> "tilleggskort"
+        DAY_PASS_3 -> "3-dagerskort"
+    }
+}
