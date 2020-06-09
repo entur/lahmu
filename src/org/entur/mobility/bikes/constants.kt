@@ -4,7 +4,7 @@ import java.time.LocalDateTime
 import java.time.Month
 import java.time.ZoneOffset
 
-val env: String? = System.getenv("ENVIRONMENT_NAMESPACE")
+val env: String = System.getenv("ENVIRONMENT_NAMESPACE") ?: "local"
 val isProd = env == "production"
 
 // The poll interval should probably be somewhere between 10sec and 60sec. As of 04.06.2020, Urban Sharing delivers data
