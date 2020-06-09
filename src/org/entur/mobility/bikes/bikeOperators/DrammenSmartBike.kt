@@ -9,13 +9,17 @@ import org.entur.mobility.bikes.StationStatus
 import org.entur.mobility.bikes.StationStatuses
 import org.entur.mobility.bikes.StationsInformation
 import org.entur.mobility.bikes.SystemInformation
+import org.entur.mobility.bikes.SystemPricePlan
 import org.entur.mobility.bikes.TTL
+import org.entur.mobility.bikes.epochOf31Dec2020
+import org.entur.mobility.bikes.epochOf5thJune2020
 
 fun drammenBysykkelURL(access_token: String) = mapOf(
     GbfsStandardEnum.gbfs to "",
     GbfsStandardEnum.system_information to "",
     GbfsStandardEnum.station_information to "https://drammen.pub.api.smartbike.com/api/en/v3/stations.json?access_token=$access_token",
-    GbfsStandardEnum.station_status to "https://drammen.pub.api.smartbike.com/api/en/v3/stations/status.json?access_token=$access_token"
+    GbfsStandardEnum.station_status to "https://drammen.pub.api.smartbike.com/api/en/v3/stations/status.json?access_token=$access_token",
+    GbfsStandardEnum.system_pricing_plans to ""
 )
 
 data class DrammenAccessToken(
@@ -65,12 +69,28 @@ fun drammenSystemInformation() = GBFSResponse.SystemInformationResponse(
     ttl = TTL,
     data = SystemInformation(
         system_id = "drammen",
-        language = "no",
+        language = "nb",
         name = "Drammen Bysykkel",
         timezone = "Europe/Oslo",
         operator = null,
         phone_number = null,
         email = null
+    )
+)
+
+fun drammenSystemPricingPlan() = GBFSResponse.SystemPricingPlans(
+    last_updated = epochOf5thJune2020,
+    ttl = getSecondsFrom(epochOf5thJune2020, epochOf31Dec2020),
+    plans = listOf(
+        SystemPricePlan(
+            plan_id = "8B00A621-82E8-4AC0-9B89-ABEAF99BD238",
+            url = "https://www.drammenbysykler.no/nb/info/abonnementer-og-priser",
+            name = PricePlan.SEASON_PASS.toString(),
+            currency = "NOK",
+            price = 130.0,
+            is_taxable = 0,
+            description = ""
+        )
     )
 )
 

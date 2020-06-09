@@ -46,4 +46,4 @@ fun cacheCheck(
         cacheMap[bikeOperator]?.get(gbfsStandardEnum)?.last_updated ?: 0L,
         0,
         ZoneOffset.UTC
-    ).plusSeconds(TTL) < LocalDateTime.now()
+    ) > LocalDateTime.now().minusSeconds(TTL)

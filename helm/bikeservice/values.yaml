@@ -48,6 +48,10 @@ container:
        secretKeyRef:
          name: bikeservice-secrets
          key: drammenPublicId
+   - name: ENVIRONMENT_NAMESPACE
+     valueFrom:
+       fieldRef:
+         fieldPath: namespace
   # - name: PG_DB_USERNAME
   #   valueFrom:
   #     secretKeyRef:

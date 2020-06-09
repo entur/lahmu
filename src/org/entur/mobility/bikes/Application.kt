@@ -43,13 +43,17 @@ import org.entur.mobility.bikes.bikeOperators.Operator.Companion.isJCDecaux
 import org.entur.mobility.bikes.bikeOperators.Operator.Companion.isKolumbus
 import org.entur.mobility.bikes.bikeOperators.Operator.Companion.isUrbanSharing
 import org.entur.mobility.bikes.bikeOperators.drammenSystemInformation
+import org.entur.mobility.bikes.bikeOperators.drammenSystemPricingPlan
 import org.entur.mobility.bikes.bikeOperators.getOperatorsWithDiscovery
+import org.entur.mobility.bikes.bikeOperators.jcDecauxSystemInformation
+import org.entur.mobility.bikes.bikeOperators.jcDecauxSystemPricingPlans
 import org.entur.mobility.bikes.bikeOperators.kolumbusBysykkelURL
+import org.entur.mobility.bikes.bikeOperators.kolumbusSystemPricingPlans
 import org.entur.mobility.bikes.bikeOperators.lillestromBysykkelURL
 import org.entur.mobility.bikes.bikeOperators.toStationInformation
 import org.entur.mobility.bikes.bikeOperators.toStationStatus
 import org.entur.mobility.bikes.bikeOperators.toStationStatuses
-import org.entur.mobility.bikes.bikeOperators.toSystemInformation
+import org.entur.mobility.bikes.bikeOperators.urbanSharingSystemPricePlan
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
@@ -207,6 +211,7 @@ fun fetchAndStoreInCache(
                     operator
                 )
             }
+            GbfsStandardEnum.system_pricing_plans -> urbanSharingSystemPricePlan(operator)
         }
         if (response != null) cache.setResponseInCacheAndGet(operator, gbfsStandardEnum, response)
     } else if (operator.isKolumbus()) {
@@ -214,7 +219,7 @@ fun fetchAndStoreInCache(
         cache.setResponseInCacheAndGet(
             operator,
             GbfsStandardEnum.system_information,
-            response.toSystemInformation()
+            response.jcDecauxSystemInformation()
         )
         cache.setResponseInCacheAndGet(
             operator,
@@ -226,13 +231,23 @@ fun fetchAndStoreInCache(
             GbfsStandardEnum.station_status,
             response.toStationStatus()
         )
+        cache.setResponseInCacheAndGet(
+            operator,
+            GbfsStandardEnum.system_pricing_plans,
+            kolumbusSystemPricingPlans()
+        )
     } else if (operator.isJCDecaux()) {
-        val response = JCDecauxResponse(data = parseJCDecauxResponse())
+        cache.setResponseInCacheAndGet(
+            operator,
+            GbfsStandardEnum.system_pricing_plans,
+            jcDecauxSystemPricingPlans()
+        )
         cache.setResponseInCacheAndGet(
             operator,
             GbfsStandardEnum.system_information,
-            response.toSystemInformation()
+            jcDecauxSystemInformation()
         )
+        val response = JCDecauxResponse(data = parseJCDecauxResponse())
         cache.setResponseInCacheAndGet(
             operator,
             GbfsStandardEnum.station_status,
@@ -280,6 +295,7 @@ fun fetchAndStoreInCache(
                     )
                 ).toStationStatuses()
             }
+            GbfsStandardEnum.system_pricing_plans -> drammenSystemPricingPlan()
         }
         if (response != null) cache.setResponseInCacheAndGet(operator, gbfsStandardEnum, response)
     }
