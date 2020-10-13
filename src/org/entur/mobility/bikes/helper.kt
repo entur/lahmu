@@ -1,6 +1,8 @@
 package org.entur.mobility.bikes
 
+import com.google.gson.Gson
 import java.io.UnsupportedEncodingException
+import java.lang.reflect.Type
 import java.net.URLEncoder
 
 @Throws(UnsupportedEncodingException::class)
@@ -18,4 +20,12 @@ fun containsNumbersLowercaseLettersAndDashes(inputValue: String): Boolean {
         }
     }
     return true
+}
+
+inline fun <reified T> parseResponse(response: String): T {
+    return parseResponse(response, T::class.java)
+}
+
+fun <T> parseResponse(response: String, type: Type): T {
+    return Gson().fromJson(response, type)
 }

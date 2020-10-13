@@ -6,16 +6,20 @@ import org.entur.mobility.bikes.bikeOperators.Operator
 
 interface Cache {
     val cacheMap: HashMap<Operator, HashMap<GbfsStandardEnum, GBFSResponse>>
+
+    fun isValidCache(operator: Operator, gbfsEnum: GbfsStandardEnum): Boolean
+    fun getResponseFromCache(bikeOperator: Operator, gbfsStandardEnum: GbfsStandardEnum): GBFSResponse?
+    fun setResponseInCacheAndGet(operator: Operator, gbfsStandardEnum: GbfsStandardEnum, response: GBFSResponse): GBFSResponse
 }
 
 class InMemoryCache(
     override val cacheMap: HashMap<Operator, HashMap<GbfsStandardEnum, GBFSResponse>>
 ) : Cache {
-    fun getResponseFromCache(bikeOperator: Operator, gbfsStandardEnum: GbfsStandardEnum): GBFSResponse? {
+    override fun getResponseFromCache(bikeOperator: Operator, gbfsStandardEnum: GbfsStandardEnum): GBFSResponse? {
         return cacheMap[bikeOperator]?.get(gbfsStandardEnum)
     }
 
-    fun setResponseInCacheAndGet(
+    override fun setResponseInCacheAndGet(
         operator: Operator,
         gbfsStandardEnum: GbfsStandardEnum,
         response: GBFSResponse
@@ -28,7 +32,7 @@ class InMemoryCache(
         return response
     }
 
-    fun isValidCache(bikeOperator: Operator, gbfsStandardEnum: GbfsStandardEnum): Boolean {
+    override fun isValidCache(bikeOperator: Operator, gbfsStandardEnum: GbfsStandardEnum): Boolean {
         val drammenCheck =
             if (bikeOperator == Operator.DRAMMENBYSYKKEL && gbfsStandardEnum == GbfsStandardEnum.station_information) {
                 cacheCheck(cacheMap, bikeOperator, GbfsStandardEnum.station_status)

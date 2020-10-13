@@ -1,33 +1,54 @@
 package org.entur.mobility.bikes
 
-import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import io.ktor.client.request.*
+import io.ktor.client.HttpClient
+import io.ktor.client.request.get
+import io.ktor.client.request.header
+import java.lang.Exception
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 import org.entur.mobility.bikes.GbfsStandardEnum.Companion.getFetchUrl
-import org.entur.mobility.bikes.bikeOperators.*
+import org.entur.mobility.bikes.bikeOperators.DrammenAccessToken
+import org.entur.mobility.bikes.bikeOperators.DrammenStationsResponse
+import org.entur.mobility.bikes.bikeOperators.DrammenStationsStatusResponse
+import org.entur.mobility.bikes.bikeOperators.JCDecauxResponse
+import org.entur.mobility.bikes.bikeOperators.JCDecauxStation
+import org.entur.mobility.bikes.bikeOperators.KolumbusResponse
+import org.entur.mobility.bikes.bikeOperators.KolumbusStation
+import org.entur.mobility.bikes.bikeOperators.Operator
 import org.entur.mobility.bikes.bikeOperators.Operator.Companion.isDrammenSmartBike
 import org.entur.mobility.bikes.bikeOperators.Operator.Companion.isJCDecaux
 import org.entur.mobility.bikes.bikeOperators.Operator.Companion.isKolumbus
 import org.entur.mobility.bikes.bikeOperators.Operator.Companion.isUrbanSharing
-import java.lang.Exception
+import org.entur.mobility.bikes.bikeOperators.drammenSystemInformation
+import org.entur.mobility.bikes.bikeOperators.drammenSystemPricingPlan
+import org.entur.mobility.bikes.bikeOperators.jcDecauxSystemInformation
+import org.entur.mobility.bikes.bikeOperators.jcDecauxSystemPricingPlans
+import org.entur.mobility.bikes.bikeOperators.kolumbusBysykkelURL
+import org.entur.mobility.bikes.bikeOperators.kolumbusSystemPricingPlans
+import org.entur.mobility.bikes.bikeOperators.lillestromBysykkelURL
+import org.entur.mobility.bikes.bikeOperators.toStationInformation
+import org.entur.mobility.bikes.bikeOperators.toStationStatus
+import org.entur.mobility.bikes.bikeOperators.toStationStatuses
+import org.entur.mobility.bikes.bikeOperators.urbanSharingSystemPricePlan
 
-interface Api {
-    fun poll(cache: InMemoryCache)
+interface BikeService {
+    val client: HttpClient
+
+    fun poll(cache: Cache)
     fun fetchAndStoreInCache(
-        cache: InMemoryCache,
+        cache: Cache,
         operator: Operator,
         gbfsStandardEnum: GbfsStandardEnum
     )
     fun fetchAndSetDrammenAccessToken()
 }
 
-class ApiImpl: Api {
+class BikeServiceImpl(override val client: HttpClient) : BikeService {
     var DRAMMEN_ACCESS_TOKEN = ""
 
-    override fun poll(cache: InMemoryCache) {
+    override fun poll(cache: Cache) {
         Operator.values().forEach { operator ->
             GlobalScope.async {
                 logger.info("Polling $operator")
@@ -53,7 +74,7 @@ class ApiImpl: Api {
         }
     }
     override fun fetchAndStoreInCache(
-        cache: InMemoryCache,
+        cache: Cache,
         operator: Operator,
         gbfsStandardEnum: GbfsStandardEnum
     ) {
@@ -63,15 +84,15 @@ class ApiImpl: Api {
                     null
                 }
                 GbfsStandardEnum.system_information -> {
-                    parseResponse<GBFSResponse.SystemInformationResponse>(gbfsStandardEnum.getFetchUrl(operator))
+                    parseResponse<GBFSResponse.SystemInformationResponse>(fetch(gbfsStandardEnum.getFetchUrl(operator)))
                 }
                 GbfsStandardEnum.station_information -> {
-                    parseResponse<GBFSResponse.StationsInformationResponse>(gbfsStandardEnum.getFetchUrl(operator)).toNeTEx(
+                    parseResponse<GBFSResponse.StationsInformationResponse>(fetch(gbfsStandardEnum.getFetchUrl(operator))).toNeTEx(
                         operator
                     )
                 }
                 GbfsStandardEnum.station_status -> {
-                    parseResponse<GBFSResponse.StationStatusesResponse>(gbfsStandardEnum.getFetchUrl(operator)).toNeTEx(
+                    parseResponse<GBFSResponse.StationStatusesResponse>(fetch(gbfsStandardEnum.getFetchUrl(operator))).toNeTEx(
                         operator
                     )
                 }
@@ -135,19 +156,19 @@ class ApiImpl: Api {
                     drammenSystemInformation()
                 }
                 GbfsStandardEnum.station_information -> {
-                    val stationsStatusResponse = parseResponse<DrammenStationsStatusResponse>(
+                    val stationsStatusResponse = parseResponse<DrammenStationsStatusResponse>(fetch(
                         GbfsStandardEnum.station_status.getFetchUrl(
                             operator,
                             DRAMMEN_ACCESS_TOKEN
                         )
-                    ).toStationStatuses()
+                    )).toStationStatuses()
                     cache.setResponseInCacheAndGet(operator, GbfsStandardEnum.station_status, stationsStatusResponse)
-                    parseResponse<DrammenStationsResponse>(
+                    parseResponse<DrammenStationsResponse>(fetch(
                         gbfsStandardEnum.getFetchUrl(
                             operator,
                             DRAMMEN_ACCESS_TOKEN
                         )
-                    ).toStationInformation(
+                    )).toStationInformation(
                         cache.getResponseFromCache(
                             Operator.DRAMMENBYSYKKEL,
                             GbfsStandardEnum.station_status
@@ -155,12 +176,12 @@ class ApiImpl: Api {
                     )
                 }
                 GbfsStandardEnum.station_status -> {
-                    parseResponse<DrammenStationsStatusResponse>(
+                    parseResponse<DrammenStationsStatusResponse>(fetch(
                         gbfsStandardEnum.getFetchUrl(
                             operator,
                             DRAMMEN_ACCESS_TOKEN
                         )
-                    ).toStationStatuses()
+                    )).toStationStatuses()
                 }
                 GbfsStandardEnum.system_pricing_plans -> drammenSystemPricingPlan()
                 GbfsStandardEnum.free_bike_status -> {
@@ -174,7 +195,7 @@ class ApiImpl: Api {
     override fun fetchAndSetDrammenAccessToken() {
         val response = try {
             logger.info("Fetching Drammen access token.")
-            parseResponse<DrammenAccessToken>(DRAMMEN_ACCESS_TOKEN_URL)
+            parseResponse<DrammenAccessToken>(fetch(DRAMMEN_ACCESS_TOKEN_URL))
         } catch (e: Exception) {
             logger.error("Failed to fetch Drammen access token. $e")
             null
@@ -185,23 +206,17 @@ class ApiImpl: Api {
     private fun parseKolumbusResponse(): List<KolumbusStation> {
         val response = fetch(kolumbusBysykkelURL.getValue(GbfsStandardEnum.system_information))
         val itemType = object : TypeToken<List<KolumbusStation>>() {}.type
-        return Gson().fromJson(response, itemType)
+        return parseResponse(response, itemType)
     }
 
     private fun parseJCDecauxResponse(): List<JCDecauxStation> {
         val response = fetch(lillestromBysykkelURL.getValue(GbfsStandardEnum.system_information))
         val itemType = object : TypeToken<List<JCDecauxStation>>() {}.type
-        return Gson().fromJson(response, itemType)
-    }
-
-    private inline fun <reified T> parseResponse(url: String): T {
-        val response = fetch(url)
-        return Gson().fromJson(response, T::class.java)
+        return parseResponse(response, itemType)
     }
 
     private fun fetch(url: String): String {
         val response = runBlocking { client.get<String>(url) { header("Client-Identifier", "entur-bikeservice") } }
         return response
     }
-
 }
