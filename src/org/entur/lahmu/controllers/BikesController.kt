@@ -1,4 +1,4 @@
-package org.entur.lahmu.web.controllers
+package org.entur.lahmu.controllers
 
 import com.google.gson.Gson
 import io.ktor.application.ApplicationCall

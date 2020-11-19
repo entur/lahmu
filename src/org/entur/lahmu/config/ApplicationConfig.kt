@@ -23,8 +23,9 @@ import kotlin.concurrent.thread
 import kotlinx.coroutines.runBlocking
 import org.entur.lahmu.legacy.service.BikeService
 import org.entur.lahmu.legacy.service.Cache
+import org.entur.lahmu.router.bikes
+import org.entur.lahmu.router.v2
 import org.entur.lahmu.util.sanitize
-import org.entur.lahmu.web.bikes
 import org.koin.ktor.ext.Koin
 import org.koin.ktor.ext.inject
 import org.slf4j.MDC
@@ -87,11 +88,18 @@ fun Application.mainModule() {
         }
     }
 
-    routingModule()
+    bikesRoutingModule()
+    v2RoutingModule()
 }
 
-fun Application.routingModule() {
+fun Application.bikesRoutingModule() {
     routing {
         bikes()
+    }
+}
+
+fun Application.v2RoutingModule() {
+    routing {
+        v2()
     }
 }

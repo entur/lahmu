@@ -1,22 +1,17 @@
-package org.entur.lahmu
+package org.entur.lahmu.legacy
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.withTestApplication
 import java.math.BigDecimal
-import org.entur.lahmu.config.routingModule
-import org.entur.lahmu.legacy.DiscoveryFeed
-import org.entur.lahmu.legacy.GBFSResponse
-import org.entur.lahmu.legacy.StationInformation
-import org.entur.lahmu.legacy.StationStatus
-import org.entur.lahmu.legacy.SystemInformation
+import org.entur.lahmu.config.bikesRoutingModule
+import org.entur.lahmu.controllers.BikesController
+import org.entur.lahmu.controllers.BikesControllerImpl
 import org.entur.lahmu.legacy.service.BikeService
 import org.entur.lahmu.legacy.service.BikeServiceImpl
 import org.entur.lahmu.legacy.service.Cache
 import org.entur.lahmu.legacy.service.InMemoryCache
 import org.entur.lahmu.util.parseResponse
-import org.entur.lahmu.web.controllers.BikesController
-import org.entur.lahmu.web.controllers.BikesControllerImpl
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
@@ -29,7 +24,7 @@ import org.koin.dsl.module
 import org.koin.test.KoinTest
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class ApplicationTest : KoinTest {
+class LegacyIntegrationTest : KoinTest {
 
     private val mockedAppModule: Module = module(override = true) {
         single<BikeService> { BikeServiceImpl(HttpMockEngine().client) }
@@ -49,28 +44,28 @@ class ApplicationTest : KoinTest {
     }
 
     @Test
-    fun `get discovery feed for unknown operator`() = withTestApplication({ routingModule() }) {
+    fun `get discovery feed for unknown operator`() = withTestApplication({ bikesRoutingModule() }) {
         with(handleRequest(HttpMethod.Get, "/bikes/foobar/gbfs.json")) {
             assertEquals(HttpStatusCode.NotFound, response.status())
         }
     }
 
     @Test
-    fun `get system information feed for unknown operator`() = withTestApplication({ routingModule() }) {
+    fun `get system information feed for unknown operator`() = withTestApplication({ bikesRoutingModule() }) {
         with(handleRequest(HttpMethod.Get, "/bikes/foobar/system_information.json")) {
             assertEquals(HttpStatusCode.NotFound, response.status())
         }
     }
 
     @Test
-    fun `get unknown gbfs feed`() = withTestApplication({ routingModule() }) {
+    fun `get unknown gbfs feed`() = withTestApplication({ bikesRoutingModule() }) {
         with(handleRequest(HttpMethod.Get, "/bikes/oslobysykkel/foo_bar.json")) {
             assertEquals(HttpStatusCode.NotFound, response.status())
         }
     }
 
     @Test
-    fun `get oslobysykkel discovery feed`() = withTestApplication({ routingModule() }) {
+    fun `get oslobysykkel discovery feed`() = withTestApplication({ bikesRoutingModule() }) {
         with(handleRequest(HttpMethod.Get, "/bikes/oslobysykkel/gbfs.json")) {
             assertEquals(HttpStatusCode.OK, response.status())
             val discoveryResponse = response.content?.let { parseResponse<GBFSResponse.DiscoveryResponse>(it) }
@@ -84,7 +79,7 @@ class ApplicationTest : KoinTest {
     }
 
     @Test
-    fun `get oslobysykkel system information`() = withTestApplication({ routingModule() }) {
+    fun `get oslobysykkel system information`() = withTestApplication({ bikesRoutingModule() }) {
         val osloBysykkelSystemInformation = SystemInformation(
             "oslobysykkel",
             "nb",
@@ -101,7 +96,7 @@ class ApplicationTest : KoinTest {
     }
 
     @Test
-    fun `get oslobysykkel station information`() = withTestApplication({ routingModule() }) {
+    fun `get oslobysykkel station information`() = withTestApplication({ bikesRoutingModule() }) {
         val osloBysykkelStationInformation = StationInformation(
             "YOS:VehicleSharingParkingArea:1919",
             "Kværnerveien",
@@ -117,7 +112,7 @@ class ApplicationTest : KoinTest {
     }
 
     @Test
-    fun `get oslobysykkel station status`() = withTestApplication({ routingModule() }) {
+    fun `get oslobysykkel station status`() = withTestApplication({ bikesRoutingModule() }) {
         val osloBysykkelStationStatus = StationStatus(
             "YOS:VehicleSharingParkingArea:1919",
             1,
@@ -134,7 +129,7 @@ class ApplicationTest : KoinTest {
     }
 
     @Test
-    fun `get oslobysykkel system pricing plans`() = withTestApplication({ routingModule() }) {
+    fun `get oslobysykkel system pricing plans`() = withTestApplication({ bikesRoutingModule() }) {
         with(handleRequest(HttpMethod.Get, "/bikes/oslobysykkel/system_pricing_plans.json")) {
             assertEquals(HttpStatusCode.OK, response.status())
             assertEquals("CD863B56-B502-4FDE-B872-C21CD1F8F15C", response.content?.let { parseResponse<GBFSResponse.SystemPricingPlans>(it).plans[0].planId })
@@ -142,14 +137,14 @@ class ApplicationTest : KoinTest {
     }
 
     @Test
-    fun `get oslobysykkel free bike status not found`() = withTestApplication({ routingModule() }) {
+    fun `get oslobysykkel free bike status not found`() = withTestApplication({ bikesRoutingModule() }) {
         with(handleRequest(HttpMethod.Get, "/bikes/oslobysykkel/free_bike_status.json")) {
             assertEquals(HttpStatusCode.NotFound, response.status())
         }
     }
 
     @Test
-    fun `get kolumbusbysykkel discovery feed`() = withTestApplication({ routingModule() }) {
+    fun `get kolumbusbysykkel discovery feed`() = withTestApplication({ bikesRoutingModule() }) {
         with(handleRequest(HttpMethod.Get, "/bikes/kolumbusbysykkel/gbfs.json")) {
             assertEquals(HttpStatusCode.OK, response.status())
             val discoveryResponse = response.content?.let { parseResponse<GBFSResponse.DiscoveryResponse>(it) }
@@ -163,7 +158,7 @@ class ApplicationTest : KoinTest {
     }
 
     @Test
-    fun `get kolumbusbysykkel system information`() = withTestApplication({ routingModule() }) {
+    fun `get kolumbusbysykkel system information`() = withTestApplication({ bikesRoutingModule() }) {
         val kolumbusBysykkelSystemInformation = SystemInformation(
             "kolumbusbysykkel",
             "nb",
@@ -181,7 +176,7 @@ class ApplicationTest : KoinTest {
     }
 
     @Test
-    fun `get kolumbusbysykkel station information`() = withTestApplication({ routingModule() }) {
+    fun `get kolumbusbysykkel station information`() = withTestApplication({ bikesRoutingModule() }) {
         val kolumbusbysykkelStationInformation = StationInformation(
             "YKO:VehicleSharingParkingArea:66",
             "Sandvika",
@@ -197,7 +192,7 @@ class ApplicationTest : KoinTest {
     }
 
     @Test
-    fun `get kolumbusbysykkel station status`() = withTestApplication({ routingModule() }) {
+    fun `get kolumbusbysykkel station status`() = withTestApplication({ bikesRoutingModule() }) {
         with(handleRequest(HttpMethod.Get, "/bikes/kolumbusbysykkel/station_status.json")) {
             assertEquals(HttpStatusCode.OK, response.status())
             val stationStatus = response.content?.let { parseResponse<GBFSResponse.StationStatusesResponse>(it).data.stations[0] }
@@ -208,7 +203,7 @@ class ApplicationTest : KoinTest {
     }
 
     @Test
-    fun `get kolumbusbysykkel system pricing plans`() = withTestApplication({ routingModule() }) {
+    fun `get kolumbusbysykkel system pricing plans`() = withTestApplication({ bikesRoutingModule() }) {
         with(handleRequest(HttpMethod.Get, "/bikes/kolumbusbysykkel/system_pricing_plans.json")) {
             assertEquals(HttpStatusCode.OK, response.status())
             assertEquals("636B0671-ED87-42FB-8FAC-6AE8F3A25826", response.content?.let { parseResponse<GBFSResponse.SystemPricingPlans>(it).plans[0].planId })
@@ -216,7 +211,7 @@ class ApplicationTest : KoinTest {
     }
 
     @Test
-    fun `get lillestrombysykkel discovery feed`() = withTestApplication({ routingModule() }) {
+    fun `get lillestrombysykkel discovery feed`() = withTestApplication({ bikesRoutingModule() }) {
         with(handleRequest(HttpMethod.Get, "/bikes/lillestrombysykkel/gbfs.json")) {
             assertEquals(HttpStatusCode.OK, response.status())
             val discoveryResponse = response.content?.let { parseResponse<GBFSResponse.DiscoveryResponse>(it) }
@@ -230,7 +225,7 @@ class ApplicationTest : KoinTest {
     }
 
     @Test
-    fun `get lillestrombysykkel system information`() = withTestApplication({ routingModule() }) {
+    fun `get lillestrombysykkel system information`() = withTestApplication({ bikesRoutingModule() }) {
         val lillestrombysykkelSystemInformation = SystemInformation(
             "lillestrom",
             "nb",
@@ -248,7 +243,7 @@ class ApplicationTest : KoinTest {
     }
 
     @Test
-    fun `get lillestrombysykkel station information`() = withTestApplication({ routingModule() }) {
+    fun `get lillestrombysykkel station information`() = withTestApplication({ bikesRoutingModule() }) {
         val lillestrombysykkelStationInformation = StationInformation(
             "YLI:VehicleSharingParkingArea:3",
             "TORVGATA",
@@ -264,7 +259,7 @@ class ApplicationTest : KoinTest {
     }
 
     @Test
-    fun `get lillestrombysykkel station status`() = withTestApplication({ routingModule() }) {
+    fun `get lillestrombysykkel station status`() = withTestApplication({ bikesRoutingModule() }) {
         with(handleRequest(HttpMethod.Get, "/bikes/lillestrombysykkel/station_status.json")) {
             assertEquals(HttpStatusCode.OK, response.status())
             val stationStatus = response.content?.let { parseResponse<GBFSResponse.StationStatusesResponse>(it).data.stations[0] }
@@ -275,7 +270,7 @@ class ApplicationTest : KoinTest {
     }
 
     @Test
-    fun `get lillestrombysykkel system pricing plans`() = withTestApplication({ routingModule() }) {
+    fun `get lillestrombysykkel system pricing plans`() = withTestApplication({ bikesRoutingModule() }) {
         with(handleRequest(HttpMethod.Get, "/bikes/lillestrombysykkel/system_pricing_plans.json")) {
             assertEquals(HttpStatusCode.OK, response.status())
             assertEquals("D16E7EC0-47F5-427D-9B71-CD079F989CC6", response.content?.let { parseResponse<GBFSResponse.SystemPricingPlans>(it).plans[0].planId })
@@ -283,7 +278,7 @@ class ApplicationTest : KoinTest {
     }
 
     @Test
-    fun `get drammenbysykkel discovery feed`() = withTestApplication({ routingModule() }) {
+    fun `get drammenbysykkel discovery feed`() = withTestApplication({ bikesRoutingModule() }) {
         with(handleRequest(HttpMethod.Get, "/bikes/drammenbysykkel/gbfs.json")) {
             assertEquals(HttpStatusCode.OK, response.status())
             val discoveryResponse = response.content?.let { parseResponse<GBFSResponse.DiscoveryResponse>(it) }
@@ -297,7 +292,7 @@ class ApplicationTest : KoinTest {
     }
 
     @Test
-    fun `get drammenbysykkel system information`() = withTestApplication({ routingModule() }) {
+    fun `get drammenbysykkel system information`() = withTestApplication({ bikesRoutingModule() }) {
         val drammenbysykkelSystemInformation = SystemInformation(
             "drammen",
             "nb",
@@ -315,7 +310,7 @@ class ApplicationTest : KoinTest {
     }
 
     @Test
-    fun `get drammenbysykkel station information`() = withTestApplication({ routingModule() }) {
+    fun `get drammenbysykkel station information`() = withTestApplication({ bikesRoutingModule() }) {
         val drammenbysykkelStationInformation = StationInformation(
             "YDR:VehicleSharingParkingArea:001",
             "Fylkeshuset",
@@ -331,7 +326,7 @@ class ApplicationTest : KoinTest {
     }
 
     @Test
-    fun `get drammenbysykkel station status`() = withTestApplication({ routingModule() }) {
+    fun `get drammenbysykkel station status`() = withTestApplication({ bikesRoutingModule() }) {
         with(handleRequest(HttpMethod.Get, "/bikes/drammenbysykkel/station_status.json")) {
             assertEquals(HttpStatusCode.OK, response.status())
             val stationStatus = response.content?.let { parseResponse<GBFSResponse.StationStatusesResponse>(it).data.stations[0] }
@@ -342,7 +337,7 @@ class ApplicationTest : KoinTest {
     }
 
     @Test
-    fun `get drammenbysykkel system pricing plans`() = withTestApplication({ routingModule() }) {
+    fun `get drammenbysykkel system pricing plans`() = withTestApplication({ bikesRoutingModule() }) {
         with(handleRequest(HttpMethod.Get, "/bikes/drammenbysykkel/system_pricing_plans.json")) {
             assertEquals(HttpStatusCode.OK, response.status())
             assertEquals("8B00A621-82E8-4AC0-9B89-ABEAF99BD238", response.content?.let { parseResponse<GBFSResponse.SystemPricingPlans>(it).plans[0].planId })

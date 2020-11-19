@@ -1,11 +1,11 @@
-package org.entur.lahmu.web
+package org.entur.lahmu.router
 
 import io.ktor.routing.Routing
 import io.ktor.routing.get
 import io.ktor.routing.route
+import org.entur.lahmu.controllers.BikesController
 import org.entur.lahmu.legacy.service.BikeService
 import org.entur.lahmu.legacy.service.Cache
-import org.entur.lahmu.web.controllers.BikesController
 import org.koin.core.parameter.parametersOf
 import org.koin.ktor.ext.inject
 

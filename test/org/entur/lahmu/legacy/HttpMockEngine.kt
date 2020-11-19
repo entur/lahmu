@@ -1,4 +1,4 @@
-package org.entur.lahmu
+package org.entur.lahmu.legacy
 
 import com.google.gson.Gson
 import io.ktor.client.HttpClient

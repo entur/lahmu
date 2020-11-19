@@ -1,4 +1,4 @@
-package org.entur.lahmu
+package org.entur.lahmu.legacy.service
 
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -6,9 +6,8 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
 import org.entur.lahmu.legacy.GBFSResponse
 import org.entur.lahmu.legacy.GbfsStandardEnum
+import org.entur.lahmu.legacy.HttpMockEngine
 import org.entur.lahmu.legacy.bikeOperators.Operator
-import org.entur.lahmu.legacy.service.BikeServiceImpl
-import org.entur.lahmu.legacy.service.InMemoryCache
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 
@@ -21,10 +20,12 @@ class BikeServiceTest {
         val bikeService = BikeServiceImpl(HttpMockEngine().client)
         val cache = InMemoryCache(HashMap())
 
-        assertNull(cache.getResponseFromCache(
-            Operator.OSLOBYSYKKEL,
-            GbfsStandardEnum.station_status
-        ))
+        assertNull(
+            cache.getResponseFromCache(
+                Operator.OSLOBYSYKKEL,
+                GbfsStandardEnum.station_status
+            )
+        )
 
         bikeService.poll(cache).join()
 
