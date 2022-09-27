@@ -13,5 +13,11 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: {{ template "name.name" . }}
-  targetCPUUtilizationPercentage: {{ .Values.horizontalPodAutoscaler.targetCPUUtilizationPercentage | default "80" }}
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.horizontalPodAutoscaler.targetCPUUtilizationPercentage | default "80" }}
 {{- end }}
