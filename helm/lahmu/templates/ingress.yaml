@@ -14,7 +14,8 @@ spec:
     - host: lahmu.{{ .Values.ingress.domainName }}
       http:
         paths:
-          - backend:
+          - pathType: ImplementationSpecificbackend
+            backend:
               service:
                 name: {{ template "name.name" . }}
               port:
