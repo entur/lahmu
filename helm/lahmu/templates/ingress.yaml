@@ -18,6 +18,6 @@ spec:
             backend:
               service:
                 name: {{ template "name.name" . }}
-              port:
-                number: {{ .Values.service.externalPort }}
+                port:
+                  number: {{ .Values.service.externalPort }}
 {{- end }}
