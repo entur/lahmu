@@ -1,0 +1,36 @@
+common:
+  app: lahmu
+  shortname: lahmu
+  team: ror
+  ingress:
+    enabled: false
+  service:
+    externalPort: 80
+    internalPort: 8080
+  container:
+    forceReplicas: 2
+    envFrom:
+      - secretRef:
+          name: lahmu-secrets
+    image: ${artifact.metadata.image}
+    cpu: 0.1
+    memory: 216
+    memoryLimit: 216
+    probes:
+      liveness:
+        path: /health
+      readiness:
+        path: /health
+    prometheus:
+      enabled: true
+      path: /actuator/prometheus
+  postgres:
+    enabled: false
+  configmap:
+    enabled: false
+    toEnv: false
+
+secrets:
+  app:
+    name: lahmu-secrets
+    lillestromApiKey: ${serviceVariable.lillestromApiKey}
