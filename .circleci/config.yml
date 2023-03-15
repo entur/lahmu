@@ -10,7 +10,7 @@ executors:
 
 orbs:
   gradle: circleci/gradle@2.2.0
-  docker: circleci/docker@1.0.1
+  docker: circleci/docker@2.2.0
 
 aliases:
   - &test-command |
